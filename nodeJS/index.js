@@ -6,44 +6,35 @@ const pso_fetcher = require('./workers/pso_fetcher');
 
 const config = require('./config');
 
-crawler({
+try {
 
-	redis : config.REDIS,
+	crawler({
+		redis : config.REDIS,
+		destination_queue_name : config.QUEUE.step1,
+		homepage : 'https://www.galbani.it'
+	});
 
-	destination_queue_name : config.QUEUE.step1,
+	const rate_limiter = new RateLimiter(2000);
 
-	homepage : 'https://www.galbani.it'
+	psi_fetcher({
+		REDIS : config.REDIS,
+		source_queue_name : config.QUEUE.step1,
+		destination_queue_name : config.QUEUE.step2,
+		rate_limiter : rate_limiter,
+		GOOGLE_PSI_KEY : config.GOOGLE_PSI_KEY
+	});
 
-});
+	pso_fetcher({
+		REDIS : config.REDIS,
+		source_queue_name : config.QUEUE.step2,
+		rate_limiter : rate_limiter,
+		GOOGLE_PSI_KEY : config.GOOGLE_PSI_KEY,
+		temp_storage : config.temp_storage,
+		domain_filter : config.domain_filter
+	});
 
-const rate_limiter = new RateLimiter(2000);
+} catch (err) {
 
-psi_fetcher({
+	console.error(err)
 
-	REDIS : config.REDIS,
-
-	source_queue_name : config.QUEUE.step1,
-
-	destination_queue_name : config.QUEUE.step2,
-
-	rate_limiter : rate_limiter,
-
-	GOOGLE_PSI_KEY : config.GOOGLE_PSI_KEY
-
-});
-
-pso_fetcher({
-
-	REDIS : config.REDIS,
-
-	source_queue_name : config.QUEUE.step2,
-
-	rate_limiter : rate_limiter,
-
-	GOOGLE_PSI_KEY : config.GOOGLE_PSI_KEY,
-
-	temp_storage : config.temp_storage,
-
-	domain_filter : config.domain_filter
-
-});
+}
