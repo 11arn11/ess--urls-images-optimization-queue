@@ -29,7 +29,10 @@ module.exports = async function (config) {
 
 			console.log(queueItem.stateData.contentType, queueItem.url);
 
-			destinationQueue.add(queueItem);
+			destinationQueue.add({
+				url   : queueItem.url,
+				step0 : queueItem
+			}, {attempts : 10});
 
 		}
 

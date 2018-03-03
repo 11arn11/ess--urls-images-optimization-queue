@@ -15,7 +15,7 @@ module.exports = {
 	GOOGLE_PSI_KEY : "AIzaSyCLRB-SnqDh3hEXAYdDvlQVi0iURBvHR1g",
 	//GOOGLE_PSI_KEY : "AIzaSyALHl_PAlecsrHffP_MUpI8-WRmPfNPaqA",
 
-	temp_storage : 'tmp/test',
+	temp_storage : 'tmp/storage',
 
 	domain_filter : [
 		'www.galbani.it'

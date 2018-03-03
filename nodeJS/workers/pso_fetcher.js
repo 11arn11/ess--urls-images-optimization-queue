@@ -95,7 +95,14 @@ module.exports = async function (config) {
 				console.log('removed image temp folder', temp_folder);
 			}
 
-			done();
+			done(null, {
+
+				temp_folder       : temp_folder,
+				file_map          : file_map,
+				image_temp_folder : image_temp_folder,
+				image_files       : image_files,
+
+			});
 
 		} catch (err) {
 

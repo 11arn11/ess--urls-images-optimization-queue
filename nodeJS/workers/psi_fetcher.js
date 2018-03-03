@@ -28,6 +28,8 @@ module.exports = async function (config) {
 
 	pagesQueue.process(10, async function (job, done) {
 
+		// console.log(job);process.exit();
+
 		let url, psi;
 
 		try {
@@ -41,7 +43,12 @@ module.exports = async function (config) {
 			if (imageOptimizationRuleImpact > 0) {
 
 				console.log('da ottimizzare ', imageOptimizationRuleImpact, url);
-				pagesToOptimizeQueue.add(job.data);
+
+				pagesToOptimizeQueue.add({
+					url   : url,
+					step0 : job.data,
+					step1 : psi
+				}, {attempts : 10});
 
 				done(null, {
 					'status'     : '2opt',
