@@ -1,0 +1,4 @@
+.idea
+/tmp/
+/nodeJS/node_modules/
+/docker-compose.yml

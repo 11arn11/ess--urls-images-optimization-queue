@@ -1,0 +1,23 @@
+version: "2"
+
+services:
+
+  redis:
+
+    image: redis
+
+    ports:
+      - "9736:6379"
+
+  # mysql:
+
+    # image: mariadb
+
+    # volumes:
+      # - "./mysql:/var/lib/mysql"
+
+    # ports:
+      # - "3306:3306"
+
+    # environment:
+      # MYSQL_ROOT_PASSWORD: example
