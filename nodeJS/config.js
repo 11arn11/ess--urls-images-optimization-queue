@@ -21,6 +21,14 @@ module.exports = {
 		'www.galbani.it'
 	],
 
+	QUEUE : {
+
+		step1 : 'pages',
+
+		step2 : 'pagesToOptimize'
+
+	},
+
 	ARENA : {
 		queues : [
 			{

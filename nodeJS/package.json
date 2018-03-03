@@ -1,14 +1,10 @@
 {
-  "name": "ess--urls-images-optimization-queue",
+  "name": "nodeJS2",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "ssh://git@gitlab.ogilvy.it:8022/anigro/ess--urls-images-optimization-queue.git"
   },
   "keywords": [],
   "author": "",
@@ -17,14 +13,12 @@
     "bull": "^3.3.10",
     "bull-arena": "^2.4.2",
     "bull-ui": "^1.2.3",
-    "express": "^4.16.2",
     "fs": "0.0.1-security",
-    "limitme": "0.0.2",
+    "mkdir": "0.0.2",
     "node-dir": "^0.1.17",
     "path": "^0.12.7",
     "request-promise": "^4.2.2",
     "rimraf": "^2.6.2",
-    "simplecrawler": "^1.1.6",
     "zip-unzip-promise": "^1.1.0"
   }
 }
