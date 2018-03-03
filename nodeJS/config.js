@@ -1,12 +1,5 @@
 module.exports = {
 
-	MYSQL : {
-		"host"     : "localhost",
-		"user"     : "root",
-		"password" : "example",
-		"database" : "site-images-optimization"
-	},
-
 	REDIS : {
 		"host" : "127.0.0.1",
 		"port" : "6379"
