@@ -14,6 +14,7 @@
     "bull-arena": "^2.4.2",
     "bull-ui": "^1.2.3",
     "fs": "0.0.1-security",
+    "limitme": "0.0.2",
     "mkdir": "0.0.2",
     "node-dir": "^0.1.17",
     "path": "^0.12.7",
