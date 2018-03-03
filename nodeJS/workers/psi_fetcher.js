@@ -46,7 +46,6 @@ module.exports = async function (config) {
 
 				pagesToOptimizeQueue.add({
 					url   : url,
-					step0 : job.data,
 					step1 : psi
 				}, {attempts : 10});
 

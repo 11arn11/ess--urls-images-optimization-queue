@@ -1,15 +1,8 @@
 module.exports = {
 
-	MYSQL : {
-		"host"     : "localhost",
-		"user"     : "root",
-		"password" : "example",
-		"database" : "site-images-optimization"
-	},
-
 	REDIS : {
 		"host" : "127.0.0.1",
-		"port" : "6379"
+		"port" : "9736"
 	},
 
 	GOOGLE_PSI_KEY : "AIzaSyCLRB-SnqDh3hEXAYdDvlQVi0iURBvHR1g",
