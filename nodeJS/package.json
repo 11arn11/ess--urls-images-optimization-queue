@@ -20,6 +20,7 @@
     "path": "^0.12.7",
     "request-promise": "^4.2.2",
     "rimraf": "^2.6.2",
+    "simplecrawler": "^1.1.6",
     "zip-unzip-promise": "^1.1.0"
   }
 }
