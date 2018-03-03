@@ -22,13 +22,20 @@ module.exports = async function (config) {
 	if (!config.GOOGLE_PSI_KEY)
 		throw new Error('GOOGLE_PSI_KEY not found');
 
+	console.log('001');
+
 	const pagesQueue = new Queue(config.source_queue_name, {redis : config.REDIS});
+
+	console.log('002');
 
 	const pagesToOptimizeQueue = new Queue(config.destination_queue_name, {redis : config.REDIS});
 
+	console.log('003');
+
 	pagesQueue.process(10, async function (job, done) {
 
-		// console.log(job);process.exit();
+		console.log(job.data);
+		process.exit();
 
 		let url, psi;
 

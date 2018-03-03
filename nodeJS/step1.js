@@ -6,6 +6,8 @@ const config = require('./config');
 
 const rate_limiter = new RateLimiter(2000);
 
+console.log('start');
+
 psi_fetcher({
 
 	REDIS : config.REDIS,
@@ -19,3 +21,5 @@ psi_fetcher({
 	GOOGLE_PSI_KEY : config.GOOGLE_PSI_KEY
 
 });
+
+console.log('finish');
