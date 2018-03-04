@@ -6,7 +6,7 @@ module.exports = async function (config) {
 	if (!config)
 		throw new Error('Config non found');
 
-	if (!config.redis)
+	if (!config.REDIS)
 		throw new Error('Redis config not found');
 
 	if (!config.destination_queue_name)
@@ -29,10 +29,17 @@ module.exports = async function (config) {
 
 			console.log(queueItem.stateData.contentType, queueItem.url);
 
+			let jobId = queueItem.url.replace(/\//g, '_').replace(/:/g, '').replace(/\./g, '_');
+
+			console.log('jobId', jobId);
+
 			destinationQueue.add({
 				url   : queueItem.url,
 				step0 : queueItem
-			}, {attempts : 10});
+			}, {
+				jobId    : jobId,
+				attempts : 10
+			});
 
 		}
 

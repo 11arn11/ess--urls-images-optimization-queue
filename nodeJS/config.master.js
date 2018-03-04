@@ -10,28 +10,29 @@ module.exports = {
 
 	temp_storage : 'tmp/storage',
 
-	domain_filter : [
-		'www.galbani.it'
-	],
+	sites : {
 
-	QUEUE : {
+		fruttolo : {
+			name          : 'fruttolo',
+			homepage      : 'http://www.fruttolo.it',
+			domain_filter : [
+				'www.fruttolo.it'
+			],
+		},
 
-		step1 : 'pages',
-
-		step2 : 'pagesToOptimize'
+		galbani : {
+			name          : 'galbani',
+			homepage      : 'https://www.galbani.it',
+			domain_filter : [
+				'www.galbani.it'
+			],
+		}
 
 	},
 
-	ARENA : {
-		queues : [
-			{
-				name     : 'pages',
-				"hostId" : "local",
-			},
-			{
-				name     : 'pagesToOptimize',
-				"hostId" : "local",
-			},
-		]
-	}
+	QUEUE : {
+		step1 : 'pages',
+		step2 : 'pagesToOptimize'
+	},
+
 };

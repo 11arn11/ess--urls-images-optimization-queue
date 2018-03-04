@@ -2,29 +2,34 @@ const Queue = require('bull');
 
 const config = require('./config');
 
-const pagesQueue           = new Queue('pages', {redis : config.REDIS});
-const pagesToOptimizeQueue = new Queue('pagesToOptimize', {redis : config.REDIS});
+let site = config.sites.fruttolo;
+
+let step1_queue = site.name + '/' + config.QUEUE.step1;
+let step2_queue = site.name + '/' + config.QUEUE.step2;
+
+const step1Queue = new Queue(step1_queue, {redis : config.REDIS});
+const step2Queue = new Queue(step2_queue, {redis : config.REDIS});
 
 (async function () {
 
 	let period = 0;
 
-	await pagesQueue.clean(period, 'completed');
-	await pagesQueue.clean(period, 'wait');
-	await pagesQueue.clean(period, 'active');
-	await pagesQueue.clean(period, 'delayed');
-	await pagesQueue.clean(period, 'failed');
+	await step1Queue.empty();
+	await step1Queue.clean(period, 'completed');
+	await step1Queue.clean(period, 'wait');
+	await step1Queue.clean(period, 'active');
+	await step1Queue.clean(period, 'delayed');
+	await step1Queue.clean(period, 'failed');
 
-	await pagesToOptimizeQueue.clean(period, 'completed');
-	await pagesToOptimizeQueue.clean(period, 'wait');
-	await pagesToOptimizeQueue.clean(period, 'active');
-	await pagesToOptimizeQueue.clean(period, 'delayed');
-	await pagesToOptimizeQueue.clean(period, 'failed');
+	await step2Queue.empty();
+	await step2Queue.clean(period, 'completed');
+	await step2Queue.clean(period, 'wait');
+	await step2Queue.clean(period, 'active');
+	await step2Queue.clean(period, 'delayed');
+	await step2Queue.clean(period, 'failed');
 
+	console.log('reset', site.name);
 
-	console.log('reset OK ');
+	process.exit();
 
 })();
-
-
-

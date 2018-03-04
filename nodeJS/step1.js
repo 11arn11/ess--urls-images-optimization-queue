@@ -6,20 +6,21 @@ const config = require('./config');
 
 const rate_limiter = new RateLimiter(2000);
 
-console.log('start');
+let site = config.sites.fruttolo;
+
+let step1_queue = site.name + '/' + config.QUEUE.step1;
+let step2_queue = site.name + '/' + config.QUEUE.step2;
 
 psi_fetcher({
 
 	REDIS : config.REDIS,
 
-	source_queue_name : config.QUEUE.step1,
+	source_queue_name : step1_queue,
 
-	destination_queue_name : config.QUEUE.step2,
+	destination_queue_name : step2_queue,
 
 	rate_limiter : rate_limiter,
 
 	GOOGLE_PSI_KEY : config.GOOGLE_PSI_KEY
 
 });
-
-console.log('finish');

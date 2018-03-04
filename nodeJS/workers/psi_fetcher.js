@@ -42,10 +42,15 @@ module.exports = async function (config) {
 
 				console.log('da ottimizzare ', imageOptimizationRuleImpact, url);
 
+				let jobId = url.replace(/\//g, '_').replace(/:/g, '').replace(/\./g, '_');
+
 				pagesToOptimizeQueue.add({
 					url   : url,
 					step1 : psi
-				}, {attempts : 10});
+				}, {
+					jobId    : jobId,
+					attempts : 10
+				});
 
 				done(null, {
 					'status'     : '2opt',
