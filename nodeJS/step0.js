@@ -1,8 +1,10 @@
+const args = require('./modules/cli')();
+
 const crawler = require('./workers/crawler');
 
 const config = require('./config');
 
-let site = config.sites.fruttolo;
+let site = config.sites[args.site];
 
 let step1_queue = site.name + '/' + config.QUEUE.step1;
 

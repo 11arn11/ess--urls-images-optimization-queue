@@ -1,3 +1,5 @@
+const args = require('./modules/cli')();
+
 const RateLimiter = require('limitme');
 
 const crawler     = require('./workers/crawler');
@@ -6,7 +8,7 @@ const pso_fetcher = require('./workers/pso_fetcher');
 
 const config = require('./config');
 
-let site = config.sites.fruttolo;
+let site = config.sites[args.site];
 
 let step1_queue = site.name + '/' + config.QUEUE.step1;
 let step2_queue = site.name + '/' + config.QUEUE.step2;

@@ -1,8 +1,10 @@
+const args = require('./modules/cli')();
+
 const Queue = require('bull');
 
 const config = require('./config');
 
-let site = config.sites.fruttolo;
+let site = config.sites[args.site];
 
 let step1_queue = site.name + '/' + config.QUEUE.step1;
 let step2_queue = site.name + '/' + config.QUEUE.step2;

@@ -13,6 +13,7 @@
     "bull": "^3.3.10",
     "bull-arena": "^2.4.2",
     "bull-ui": "^1.2.3",
+    "commander": "^2.14.1",
     "fs": "0.0.1-security",
     "limitme": "0.0.2",
     "mkdir": "0.0.2",
