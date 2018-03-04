@@ -23,6 +23,10 @@ const options = {
 	queues : queues
 };
 
-const arena = Arena(options, {port : config.REDIS.port});
+const arena = Arena(options, {
+	redis : {
+		port : config.REDIS.port
+	}
+});
 
 router.use('/', arena);
