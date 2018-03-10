@@ -12,10 +12,12 @@ for (let c = 0; c < Object.keys(config.sites).length; c++) {
 	queues.push({
 		name     : site.name + '/' + config.QUEUE.step1,
 		'hostId' : config.REDIS.host,
+		redis    : config.REDIS
 	});
 	queues.push({
 		name     : site.name + '/' + config.QUEUE.step2,
 		'hostId' : config.REDIS.host,
+		redis    : config.REDIS
 	});
 }
 
@@ -23,15 +25,6 @@ const options = {
 	queues : queues
 };
 
-const settings = {
-	redis : {
-		host : config.REDIS.host,
-		port : config.REDIS.port
-	}
-};
-
-console.log(settings);
-
-const arena = Arena(options, settings);
+const arena = Arena(options);
 
 router.use('/', arena);
