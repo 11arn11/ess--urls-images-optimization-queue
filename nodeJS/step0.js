@@ -6,11 +6,11 @@ const config = require('./config');
 
 let site = config.sites[args.site];
 
-let step1_queue = site.name + '/' + config.QUEUE.step1;
+let step1_queue = site.name + '/' + config.queue.step1;
 
 crawler({
 
-	REDIS : config.REDIS,
+	redis : config.redis,
 
 	destination_queue_name : step1_queue,
 

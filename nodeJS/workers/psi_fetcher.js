@@ -7,7 +7,7 @@ module.exports = async function (config) {
 	if (!config)
 		throw new Error('Config non found');
 
-	if (!config.REDIS)
+	if (!config.redis)
 		throw new Error('Redis config not found');
 
 	if (!config.source_queue_name)
@@ -19,12 +19,12 @@ module.exports = async function (config) {
 	if (!config.rate_limiter)
 		throw new Error('RateLimiter instance not found');
 
-	if (!config.GOOGLE_PSI_KEY)
-		throw new Error('GOOGLE_PSI_KEY not found');
+	if (!config.google_psi_api_key)
+		throw new Error('google_psi_api_key not found');
 
-	const pagesQueue = new Queue(config.source_queue_name, {redis : config.REDIS});
+	const pagesQueue = new Queue(config.source_queue_name, {redis : config.redis});
 
-	const pagesToOptimizeQueue = new Queue(config.destination_queue_name, {redis : config.REDIS});
+	const pagesToOptimizeQueue = new Queue(config.destination_queue_name, {redis : config.redis});
 
 	pagesQueue.process(10, async function (job, done) {
 
@@ -34,7 +34,7 @@ module.exports = async function (config) {
 
 			url = job.data.url;
 
-			psi = await page_speed_insight(url, config.GOOGLE_PSI_KEY, config.rate_limiter);
+			psi = await page_speed_insight(url, config.google_psi_api_key, config.rate_limiter);
 
 			let imageOptimizationRuleImpact = psi.formattedResults.ruleResults.OptimizeImages.ruleImpact;
 

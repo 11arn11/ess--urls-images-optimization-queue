@@ -6,11 +6,11 @@ const config = require('./config');
 
 let site = config.sites[args.site];
 
-let step1_queue = site.name + '/' + config.QUEUE.step1;
-let step2_queue = site.name + '/' + config.QUEUE.step2;
+let step1_queue = site.name + '/' + config.queue.step1;
+let step2_queue = site.name + '/' + config.queue.step2;
 
-const step1Queue = new Queue(step1_queue, {redis : config.REDIS});
-const step2Queue = new Queue(step2_queue, {redis : config.REDIS});
+const step1Queue = new Queue(step1_queue, {redis : config.redis});
+const step2Queue = new Queue(step2_queue, {redis : config.redis});
 
 (async function () {
 

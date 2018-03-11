@@ -1,9 +1,9 @@
 const config = require('../config');
 
-console.info(config.REDIS);
+console.info(config.redis);
 
 const app = require('bull-ui/app')({
-	redis : config.REDIS
+	redis : config.redis
 });
 
 app.listen(4444, function () {

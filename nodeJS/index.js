@@ -10,13 +10,13 @@ const config = require('./config');
 
 let site = config.sites[args.site];
 
-let step1_queue = site.name + '/' + config.QUEUE.step1;
-let step2_queue = site.name + '/' + config.QUEUE.step2;
+let step1_queue = site.name + '/' + config.queue.step1;
+let step2_queue = site.name + '/' + config.queue.step2;
 
 try {
 
 	crawler({
-		REDIS                  : config.REDIS,
+		redis                  : config.redis,
 		destination_queue_name : step1_queue,
 		homepage               : site.homepage
 	});
@@ -24,18 +24,18 @@ try {
 	const rate_limiter = new RateLimiter(2000);
 
 	psi_fetcher({
-		REDIS                  : config.REDIS,
+		redis                  : config.redis,
 		source_queue_name      : step1_queue,
 		destination_queue_name : step2_queue,
 		rate_limiter           : rate_limiter,
-		GOOGLE_PSI_KEY         : config.GOOGLE_PSI_KEY
+		google_psi_api_key         : config.google_psi_api_key
 	});
 
 	pso_fetcher({
-		REDIS             : config.REDIS,
+		redis             : config.redis,
 		source_queue_name : step2_queue,
 		rate_limiter      : rate_limiter,
-		GOOGLE_PSI_KEY    : config.GOOGLE_PSI_KEY,
+		google_psi_api_key    : config.google_psi_api_key,
 		temp_storage      : config.temp_storage,
 		domain_filter     : site.domain_filter
 	});

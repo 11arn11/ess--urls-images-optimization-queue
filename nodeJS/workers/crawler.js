@@ -6,7 +6,7 @@ module.exports = async function (config) {
 	if (!config)
 		throw new Error('Config non found');
 
-	if (!config.REDIS)
+	if (!config.redis)
 		throw new Error('Redis config not found');
 
 	if (!config.destination_queue_name)
@@ -15,7 +15,7 @@ module.exports = async function (config) {
 	if (!config.homepage)
 		throw new Error('Homepage URL not found');
 
-	let destinationQueue = new Queue(config.destination_queue_name, {redis : config.REDIS});
+	let destinationQueue = new Queue(config.destination_queue_name, {redis : config.redis});
 
 	let crawler = new Crawler(config.homepage);
 

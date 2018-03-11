@@ -10,14 +10,14 @@ let queues = [];
 for (let c = 0; c < Object.keys(config.sites).length; c++) {
 	let site = config.sites[Object.keys(config.sites)[c]];
 	queues.push({
-		name     : site.name + '/' + config.QUEUE.step1,
-		'hostId' : config.REDIS.host,
-		redis    : config.REDIS
+		name     : site.name + '/' + config.queue.step1,
+		'hostId' : config.redis.host,
+		redis    : config.redis
 	});
 	queues.push({
-		name     : site.name + '/' + config.QUEUE.step2,
-		'hostId' : config.REDIS.host,
-		redis    : config.REDIS
+		name     : site.name + '/' + config.queue.step2,
+		'hostId' : config.redis.host,
+		redis    : config.redis
 	});
 }
 

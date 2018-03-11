@@ -14,7 +14,7 @@ module.exports = async function (config) {
 	if (!config)
 		throw new Error('Config non found');
 
-	if (!config.REDIS)
+	if (!config.redis)
 		throw new Error('Redis config not found');
 
 	if (!config.source_queue_name)
@@ -23,13 +23,13 @@ module.exports = async function (config) {
 	if (!config.rate_limiter)
 		throw new Error('RateLimiter instance not found');
 
-	if (!config.GOOGLE_PSI_KEY)
-		throw new Error('GOOGLE_PSI_KEY not found');
+	if (!config.google_psi_api_key)
+		throw new Error('google_psi_api_key not found');
 
 	if (!config.temp_storage)
 		throw new Error('temp_storage not found');
 
-	const pagesToOptimizeQueue = new Queue(config.source_queue_name, {redis : config.REDIS});
+	const pagesToOptimizeQueue = new Queue(config.source_queue_name, {redis : config.redis});
 
 	pagesToOptimizeQueue.process(10, async function (job, done) {
 
@@ -41,7 +41,7 @@ module.exports = async function (config) {
 
 			console.log('processing', url);
 
-			pso = await page_speed_optimization(url, config.GOOGLE_PSI_KEY, config.rate_limiter);
+			pso = await page_speed_optimization(url, config.google_psi_api_key, config.rate_limiter);
 
 			temp_folder = await save_optimized_data(pso, config.temp_storage);
 

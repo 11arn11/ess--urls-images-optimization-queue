@@ -10,17 +10,17 @@ const rate_limiter = new RateLimiter(2000);
 
 let site = config.sites[args.site];
 
-let step2_queue = site.name + '/' + config.QUEUE.step2;
+let step2_queue = site.name + '/' + config.queue.step2;
 
 pso_fetcher({
 
-	REDIS : config.REDIS,
+	redis : config.redis,
 
 	source_queue_name : step2_queue,
 
 	rate_limiter : rate_limiter,
 
-	GOOGLE_PSI_KEY : config.GOOGLE_PSI_KEY,
+	google_psi_api_key : config.google_psi_api_key,
 
 	temp_storage : config.temp_storage,
 
