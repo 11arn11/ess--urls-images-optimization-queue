@@ -7,7 +7,11 @@ module.exports = {
 
 	google_psi_api_key : "YOUR_GOOGLE_PSI_API_KEY",
 
-	temp_storage : 'YOUR_STORAGE_ABSOLUTE_PATH', // /tmp/ess_uioq
+	storage : {
+		output  : 'temp/optimized',
+		archive : 'temp/archive',
+		zip     : 'temp/zip'
+	},
 
 	sites : {
 

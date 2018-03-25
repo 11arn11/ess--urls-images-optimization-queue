@@ -12,6 +12,7 @@ let site = config.sites[args.site];
 
 let step1_queue = site.name + '/' + config.queue.step1;
 let step2_queue = site.name + '/' + config.queue.step2;
+let step3_queue = site.name + '/' + config.queue.step3;
 
 try {
 
@@ -28,16 +29,17 @@ try {
 		source_queue_name      : step1_queue,
 		destination_queue_name : step2_queue,
 		rate_limiter           : rate_limiter,
-		google_psi_api_key         : config.google_psi_api_key
+		google_psi_api_key     : config.google_psi_api_key
 	});
 
 	pso_fetcher({
-		redis             : config.redis,
-		source_queue_name : step2_queue,
-		rate_limiter      : rate_limiter,
-		google_psi_api_key    : config.google_psi_api_key,
-		temp_storage      : config.temp_storage,
-		domain_filter     : site.domain_filter
+		redis                  : config.redis,
+		source_queue_name      : step2_queue,
+		destination_queue_name : step3_queue,
+		rate_limiter           : rate_limiter,
+		google_psi_api_key     : config.google_psi_api_key,
+		storage                : config.storage,
+		domain_filter          : site.domain_filter
 	});
 
 } catch (err) {

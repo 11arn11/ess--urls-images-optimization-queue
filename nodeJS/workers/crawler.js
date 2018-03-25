@@ -1,6 +1,8 @@
 const Crawler = require('simplecrawler');
 const Queue   = require('bull');
 
+const message = require('../modules/message');
+
 module.exports = async function (config) {
 
 	if (!config)
@@ -25,21 +27,31 @@ module.exports = async function (config) {
 
 	crawler.on('fetchcomplete', async function (queueItem, responseBuffer, response) {
 
-		if (queueItem.stateData.contentType.match('text/html')) {
+		try {
 
-			console.log(queueItem.stateData.contentType, queueItem.url);
+			if (queueItem.stateData.contentType.match('text/html')) {
 
-			let jobId = queueItem.url.replace(/\//g, '_').replace(/:/g, '').replace(/\./g, '_');
+				// console.log(queueItem.stateData.contentType, queueItem.url);
 
-			console.log('jobId', jobId);
+				let jobId = queueItem.url.replace(/\//g, '_').replace(/:/g, '').replace(/\./g, '_');
 
-			destinationQueue.add({
-				url   : queueItem.url,
-				step0 : queueItem
-			}, {
-				jobId    : jobId,
-				attempts : 10
-			});
+				// console.log('jobId', jobId);
+
+				destinationQueue.add({
+					url   : queueItem.url,
+					step0 : queueItem
+				}, {
+					jobId    : jobId,
+					attempts : 10
+				});
+
+			}
+
+		} catch (err) {
+
+			console.log('errore');
+			console.log(queueItem);
+			console.log(err);
 
 		}
 
@@ -47,10 +59,14 @@ module.exports = async function (config) {
 
 	crawler.on('complete', function () {
 
-		console.log('crawling complete');
+		console.log('crawler complete');
+
+		destinationQueue.add(message.complete());
 
 	});
 
 	crawler.start();
+
+	console.log('crawler start');
 
 };

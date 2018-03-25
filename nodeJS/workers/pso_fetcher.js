@@ -1,35 +1,27 @@
-const Queue = require('bull');
-
 const mkdirp             = require('mkdirp');
 const dir                = require('node-dir');
 const path               = require('path');
 const fs                 = require('fs');
 const {zip, unzip, list} = require('zip-unzip-promise');
 const rimraf             = require('rimraf');
+const md5                = require('md5');
+const md5File            = require('md5-file');
+const dateTime           = require('node-datetime');
+const request            = require('request-promise');
+const glob               = require('glob');
 
+const Queue = require('bull');
+
+const message                 = require('../modules/message');
 const page_speed_optimization = require('../modules/page-speed-optimization');
 
 module.exports = async function (config) {
 
-	if (!config)
-		throw new Error('Config non found');
-
-	if (!config.redis)
-		throw new Error('Redis config not found');
-
-	if (!config.source_queue_name)
-		throw new Error('source_queue_name not found');
-
-	if (!config.rate_limiter)
-		throw new Error('RateLimiter instance not found');
-
-	if (!config.google_psi_api_key)
-		throw new Error('google_psi_api_key not found');
-
-	if (!config.temp_storage)
-		throw new Error('temp_storage not found');
+	check_config(config);
 
 	const pagesToOptimizeQueue = new Queue(config.source_queue_name, {redis : config.redis});
+
+	const imagesToUploadQueue = new Queue(config.destination_queue_name, {redis : config.redis});
 
 	pagesToOptimizeQueue.process(10, async function (job, done) {
 
@@ -37,15 +29,46 @@ module.exports = async function (config) {
 
 		try {
 
+			if (message.is_complete(job.data)) {
+
+				pagesToOptimizeQueue.on('completed', async function (job, result) {
+
+					let count_waiting = await pagesToOptimizeQueue.getWaitingCount();
+					let count_active  = await pagesToOptimizeQueue.getActiveCount();
+
+					console.log(count_waiting, count_active);
+
+					if (count_waiting === 0 && count_active === 0) {
+
+						console.log('pso_fetcher complete');
+
+						imagesToUploadQueue.add(message.complete());
+
+						imagesToUploadQueue.resume();
+
+					}
+
+				});
+
+				done(null, {
+					'status' : 'completed'
+				});
+
+				return;
+
+			}
+
 			url = job.data.url;
 
-			console.log('processing', url);
+			// console.log('processing', url);
 
 			pso = await page_speed_optimization(url, config.google_psi_api_key, config.rate_limiter);
 
-			temp_folder = await save_optimized_data(pso, config.temp_storage);
+			// salva lo zip scaricato e lo decomprime
+			temp_folder = await save_optimized_files(pso, config.storage.zip);
 
-			file_map = await parse_manifest_file(temp_folder);
+			// crea la mappa dei file ottimizzati
+			file_map = await parse_manifest_file(temp_folder + '/MANIFEST');
 
 			image_temp_folder = temp_folder + '/image';
 
@@ -59,8 +82,7 @@ module.exports = async function (config) {
 
 				let image_url = file_map[image_path];
 
-				image_url = image_url.replace('https://', '');
-				image_url = image_url.replace('http://', '');
+				let local_image_url = image_url.replace('https://', '').replace('http://', '');
 
 				let domain_included = 1;
 
@@ -68,7 +90,7 @@ module.exports = async function (config) {
 				if (config.domain_filter) {
 					domain_included = 0;
 					for (let z = 0; z < config.domain_filter.length; z++) {
-						if (image_url.startsWith(config.domain_filter[z])) {
+						if (local_image_url.startsWith(config.domain_filter[z])) {
 							domain_included++;
 						}
 					}
@@ -76,15 +98,17 @@ module.exports = async function (config) {
 
 				if (domain_included) {
 
-					let destination_file_path = config.temp_storage + '/' + image_url;
+					await save_file_history(image_file_path, local_image_url, image_url, config.storage);
+					save_optimazed_file(image_file_path, local_image_url, config.storage);
 
-					let destination_folder = path.dirname(destination_file_path);
-					if (!fs.existsSync(destination_folder)) {
-						mkdirp.sync(destination_folder);
-					}
+					let jobId = local_image_url.replace(/\//g, '_').replace(/:/g, '').replace(/\./g, '_');
 
-					console.log(image_file_path);
-					fs.copyFileSync(image_file_path, destination_file_path);
+					imagesToUploadQueue.add({
+						url : local_image_url,
+					}, {
+						jobId    : jobId,
+						attempts : 10
+					});
 
 				}
 
@@ -92,7 +116,7 @@ module.exports = async function (config) {
 
 			if (fs.existsSync(temp_folder)) {
 				rimraf.sync(temp_folder);
-				console.log('removed image temp folder', temp_folder);
+				// console.log('removed image temp folder', temp_folder);
 			}
 
 			done(null, {
@@ -108,7 +132,7 @@ module.exports = async function (config) {
 
 			if (fs.existsSync(temp_folder)) {
 				rimraf.sync(temp_folder);
-				console.log('removed image temp folder', temp_folder);
+				// console.log('removed image temp folder', temp_folder);
 			}
 
 			done(err, {
@@ -127,12 +151,46 @@ module.exports = async function (config) {
 
 };
 
-async function save_optimized_data(zipped_content, temp_storage) {
+function check_config(config) {
+
+	if (!config)
+		throw new Error('Config non found');
+
+	if (!config.redis)
+		throw new Error('Redis config not found');
+
+	if (!config.source_queue_name)
+		throw new Error('source_queue_name not found');
+
+	if (!config.destination_queue_name)
+		throw new Error('destination_queue_name not found');
+
+	if (!config.rate_limiter)
+		throw new Error('RateLimiter instance not found');
+
+	if (!config.google_psi_api_key)
+		throw new Error('google_psi_api_key not found');
+
+	if (!config.storage)
+		throw new Error('storage config not found');
+
+	if (!config.storage.zip)
+		throw new Error('zip storage folder not found');
+
+	if (!config.storage.archive)
+		throw new Error('archive storage folder not found');
+
+	if (!config.storage.output)
+		throw new Error('output storage folder not found');
+
+}
+
+async function save_optimized_files(zipped_content, temp_storage) {
 
 	let destination = temp_storage + '/zipped_optimized_resources';
 	if (!fs.existsSync(destination)) {
 		mkdirp.sync(destination);
-		console.log('created', destination);
+		// console.log('created', destination);
 	}
 
 	let time           = new Date().getTime();
@@ -140,7 +198,7 @@ async function save_optimized_data(zipped_content, temp_storage) {
 	let temp_folder    = destination + '/temp_' + time + '_' + micro_time[1];
 	let temp_file_name = temp_folder + '.zip';
 
-	console.log('created', temp_file_name);
+	// console.log('created', temp_file_name);
 
 	fs.writeFileSync(temp_file_name, zipped_content);
 
@@ -152,9 +210,9 @@ async function save_optimized_data(zipped_content, temp_storage) {
 
 }
 
-async function parse_manifest_file(temp_folder) {
+async function parse_manifest_file(manifest_file_path) {
 
-	let manifest = fs.readFileSync(temp_folder + '/MANIFEST', 'utf8');
+	let manifest = fs.readFileSync(manifest_file_path, 'utf8');
 
 	let manifest_rows_array = manifest.split("\n");
 
@@ -173,5 +231,83 @@ async function parse_manifest_file(temp_folder) {
 	}
 
 	return output;
+
+}
+
+async function save_file_history(image_file_path, local_image_url, image_url, storage_config) {
+
+	let formatted_date      = dateTime.create().format('Y_m_d__H_M_S');
+	let archive_folder_path = storage_config.archive + '/' + local_image_url;
+	let file_extension      = path.extname(image_file_path);
+
+	// Master version
+	let master_file = await request({
+		url      : image_url,
+		encoding : null
+	});
+
+	let master_md5 = md5(master_file);
+	if (!file_version_exists(archive_folder_path, master_md5)) {
+		let archivied_master_file_name = 'M__' + formatted_date + '__' + master_md5 + file_extension;
+
+		let archive_master_file_path = archive_folder_path + '/' + archivied_master_file_name;
+		let archive_master_folder    = path.dirname(archive_master_file_path);
+		if (!fs.existsSync(archive_master_folder)) {
+			mkdirp.sync(archive_master_folder);
+		}
+		// console.log(image_file_path, '=>', archive_master_file_path);
+		fs.writeFileSync(archive_master_file_path, master_file);
+	}
+
+	// Optimized version
+	let optimized_md5 = md5File.sync(image_file_path);
+	if (!file_version_exists(archive_folder_path, optimized_md5)) {
+		let archivied_optimized_file_name = 'O__' + formatted_date + '__' + optimized_md5 + file_extension;
+
+		let archive_optimized_file_path = archive_folder_path + '/' + archivied_optimized_file_name;
+		let archive_optimized_folder    = path.dirname(archive_optimized_file_path);
+		if (!fs.existsSync(archive_optimized_folder)) {
+			mkdirp.sync(archive_optimized_folder);
+		}
+		// console.log(image_file_path, '=>', archive_optimized_file_path);
+		fs.copyFileSync(image_file_path, archive_optimized_file_path);
+	}
+
+}
+
+function file_version_exists(archive_folder_path, md5) {
+
+	let extension = path.extname(archive_folder_path);
+
+	let wildcard_expression = archive_folder_path + '/*' + md5 + extension;
+
+	let files = glob.sync(wildcard_expression);
+
+	// process.exit();
+
+	return files.length > 0;
+}
+
+function save_optimazed_file(image_file_path, local_image_url, storage_config) {
+
+	let output_file_path = storage_config.output + '/' + local_image_url;
+	let output_folder    = path.dirname(output_file_path);
+
+	if (fs.existsSync(output_file_path)) {
+
+		let old_size = fs.statSync(output_file_path).size;
+		let new_size = fs.statSync(image_file_path).size;
+
+		if (old_size > new_size) {
+			return;
+		}
+
+	}
+
+	if (!fs.existsSync(output_folder)) {
+		mkdirp.sync(output_folder);
+	}
+	// console.log(image_file_path, '=>', output_file_path);
+	fs.copyFileSync(image_file_path, output_file_path);
 
 }
