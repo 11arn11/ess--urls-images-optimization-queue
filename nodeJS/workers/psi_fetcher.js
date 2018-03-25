@@ -1,26 +1,11 @@
 const Queue = require('bull');
 
+const message            = require('../modules/message');
 const page_speed_insight = require('../modules/page-speed-insight');
 
 module.exports = async function (config) {
 
-	if (!config)
-		throw new Error('Config non found');
-
-	if (!config.redis)
-		throw new Error('Redis config not found');
-
-	if (!config.source_queue_name)
-		throw new Error('source_queue_name not found');
-
-	if (!config.destination_queue_name)
-		throw new Error('destination_queue_name not found');
-
-	if (!config.rate_limiter)
-		throw new Error('RateLimiter instance not found');
-
-	if (!config.google_psi_api_key)
-		throw new Error('google_psi_api_key not found');
+	check_config(config);
 
 	const pagesQueue = new Queue(config.source_queue_name, {redis : config.redis});
 
@@ -32,6 +17,33 @@ module.exports = async function (config) {
 
 		try {
 
+			if (message.is_complete(job.data)) {
+
+				pagesQueue.on('completed', async function (job, result) {
+
+					let count_waiting = await pagesQueue.getWaitingCount();
+					let count_active  = await pagesQueue.getActiveCount();
+
+					console.log(count_waiting, count_active);
+
+					if (count_waiting === 0 && count_active === 0) {
+
+						console.log('psi_fetcher complete');
+
+						pagesToOptimizeQueue.add(message.complete());
+
+					}
+
+				});
+
+				done(null, {
+					'status' : 'completed'
+				});
+
+				return;
+
+			}
+
 			url = job.data.url;
 
 			psi = await page_speed_insight(url, config.google_psi_api_key, config.rate_limiter);
@@ -40,7 +52,7 @@ module.exports = async function (config) {
 
 			if (imageOptimizationRuleImpact > 0) {
 
-				console.log('da ottimizzare ', imageOptimizationRuleImpact, url);
+				// console.log('da ottimizzare ', imageOptimizationRuleImpact, url);
 
 				let jobId = url.replace(/\//g, '_').replace(/:/g, '').replace(/\./g, '_');
 
@@ -78,3 +90,24 @@ module.exports = async function (config) {
 	});
 };
 
+function check_config(config) {
+
+	if (!config)
+		throw new Error('Config non found');
+
+	if (!config.redis)
+		throw new Error('Redis config not found');
+
+	if (!config.source_queue_name)
+		throw new Error('source_queue_name not found');
+
+	if (!config.destination_queue_name)
+		throw new Error('destination_queue_name not found');
+
+	if (!config.rate_limiter)
+		throw new Error('RateLimiter instance not found');
+
+	if (!config.google_psi_api_key)
+		throw new Error('google_psi_api_key not found');
+
+}

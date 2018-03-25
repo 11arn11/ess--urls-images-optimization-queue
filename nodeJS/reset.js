@@ -6,31 +6,35 @@ const config = require('./config');
 
 let site = config.sites[args.site];
 
-let step1_queue = site.name + '/' + config.queue.step1;
-let step2_queue = site.name + '/' + config.queue.step2;
+let queues = [];
 
-const step1Queue = new Queue(step1_queue, {redis : config.redis});
-const step2Queue = new Queue(step2_queue, {redis : config.redis});
+for (let q = 0; q < Object.keys(config.queue).length; q++) {
+
+	let name  = site.name + '/' + Object.keys(config.queue)[q];
+	let queue = new Queue(name, {redis : config.redis});
+	queues.push(queue);
+
+}
 
 (async function () {
 
 	let period = 0;
 
-	await step1Queue.empty();
-	await step1Queue.clean(period, 'completed');
-	await step1Queue.clean(period, 'wait');
-	await step1Queue.clean(period, 'active');
-	await step1Queue.clean(period, 'delayed');
-	await step1Queue.clean(period, 'failed');
+	for (let q = 0; q < queues.length; q++) {
 
-	await step2Queue.empty();
-	await step2Queue.clean(period, 'completed');
-	await step2Queue.clean(period, 'wait');
-	await step2Queue.clean(period, 'active');
-	await step2Queue.clean(period, 'delayed');
-	await step2Queue.clean(period, 'failed');
+		let queue = queues[q];
+		console.log(queue);
 
-	console.log('reset', site.name);
+		await queue.empty();
+		await queue.clean(period, 'completed');
+		await queue.clean(period, 'wait');
+		await queue.clean(period, 'active');
+		await queue.clean(period, 'delayed');
+		await queue.clean(period, 'failed');
+
+	}
+
+	console.log('reset', site.name, '(', queues.length, ' queue)');
 
 	process.exit();
 
