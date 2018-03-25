@@ -248,7 +248,7 @@ async function save_file_history(image_file_path, local_image_url, image_url, st
 
 	let master_md5 = md5(master_file);
 	if (!file_version_exists(archive_folder_path, master_md5)) {
-		let archivied_master_file_name = 'M__' + formatted_date + '__' + master_md5 + file_extension;
+		let archivied_master_file_name = formatted_date + '__M__' + master_md5 + file_extension;
 
 		let archive_master_file_path = archive_folder_path + '/' + archivied_master_file_name;
 		let archive_master_folder    = path.dirname(archive_master_file_path);
@@ -262,7 +262,7 @@ async function save_file_history(image_file_path, local_image_url, image_url, st
 	// Optimized version
 	let optimized_md5 = md5File.sync(image_file_path);
 	if (!file_version_exists(archive_folder_path, optimized_md5)) {
-		let archivied_optimized_file_name = 'O__' + formatted_date + '__' + optimized_md5 + file_extension;
+		let archivied_optimized_file_name = formatted_date + '__O__' + optimized_md5 + file_extension;
 
 		let archive_optimized_file_path = archive_folder_path + '/' + archivied_optimized_file_name;
 		let archive_optimized_folder    = path.dirname(archive_optimized_file_path);
