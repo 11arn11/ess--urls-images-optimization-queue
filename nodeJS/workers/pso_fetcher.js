@@ -98,17 +98,24 @@ module.exports = async function (config) {
 
 				if (domain_included) {
 
-					await save_file_history(image_file_path, local_image_url, image_url, config.storage);
-					save_optimazed_file(image_file_path, local_image_url, config.storage);
+					let master_file = await get_master_file(image_url);
 
-					let jobId = local_image_url.replace(/\//g, '_').replace(/:/g, '').replace(/\./g, '_');
+					await save_file_history(image_file_path, local_image_url, master_file, config.storage);
 
-					imagesToUploadQueue.add({
-						url : local_image_url,
-					}, {
-						jobId    : jobId,
-						attempts : 10
-					});
+					let optimized = save_optimazed_file(image_file_path, local_image_url, master_file, config.storage);
+
+					if (optimized) {
+
+						let jobId = local_image_url.replace(/\//g, '_').replace(/:/g, '').replace(/\./g, '_');
+
+						imagesToUploadQueue.add({
+							url : local_image_url,
+						}, {
+							jobId    : jobId,
+							attempts : 10
+						});
+
+					}
 
 				}
 
@@ -234,17 +241,20 @@ async function parse_manifest_file(manifest_file_path) {
 
 }
 
-async function save_file_history(image_file_path, local_image_url, image_url, storage_config) {
+async function get_master_file(url) {
+
+	return await request({
+		url      : url,
+		encoding : null
+	});
+
+}
+
+async function save_file_history(image_file_path, local_image_url, master_file, storage_config) {
 
 	let formatted_date      = dateTime.create().format('Y_m_d__H_M_S');
 	let archive_folder_path = storage_config.archive + '/' + local_image_url;
 	let file_extension      = path.extname(image_file_path);
-
-	// Master version
-	let master_file = await request({
-		url      : image_url,
-		encoding : null
-	});
 
 	let master_md5 = md5(master_file);
 	if (!file_version_exists(archive_folder_path, master_md5)) {
@@ -275,20 +285,15 @@ async function save_file_history(image_file_path, local_image_url, image_url, st
 
 }
 
-function file_version_exists(archive_folder_path, md5) {
+function save_optimazed_file(image_file_path, local_image_url, master_file, storage_config) {
 
-	let extension = path.extname(archive_folder_path);
+	let archive_folder_path = storage_config.archive + '/' + local_image_url;
+	let master_md5          = md5(master_file);
 
-	let wildcard_expression = archive_folder_path + '/*' + md5 + extension;
-
-	let files = glob.sync(wildcard_expression);
-
-	// process.exit();
-
-	return files.length > 0;
-}
-
-function save_optimazed_file(image_file_path, local_image_url, storage_config) {
+	if (file_version_exists(archive_folder_path, master_md5, 'O')) {
+		console.log('skipped because already optimized', archive_folder_path);
+		return false;
+	}
 
 	let output_file_path = storage_config.output + '/' + local_image_url;
 	let output_folder    = path.dirname(output_file_path);
@@ -299,7 +304,8 @@ function save_optimazed_file(image_file_path, local_image_url, storage_config) {
 		let new_size = fs.statSync(image_file_path).size;
 
 		if (old_size > new_size) {
-			return;
+			console.log('skipped because exist bigger optimized image', archive_folder_path);
+			return false;
 		}
 
 	}
@@ -310,4 +316,23 @@ function save_optimazed_file(image_file_path, local_image_url, storage_config) {
 	// console.log(image_file_path, '=>', output_file_path);
 	fs.copyFileSync(image_file_path, output_file_path);
 
+	return true;
+
+}
+
+function file_version_exists(archive_folder_path, md5, version) {
+
+	let extension = path.extname(archive_folder_path);
+
+	let wildcard_expression;
+	if (version === undefined)
+		wildcard_expression = archive_folder_path + '/*' + md5 + extension;
+	else
+		wildcard_expression = archive_folder_path + '/*' + '__' + version + '__' + md5 + extension;
+
+	let files = glob.sync(wildcard_expression);
+
+	// process.exit();
+
+	return files.length > 0;
 }
