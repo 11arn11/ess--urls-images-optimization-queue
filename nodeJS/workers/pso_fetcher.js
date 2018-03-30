@@ -304,7 +304,7 @@ function save_optimazed_file(image_file_path, local_image_url, master_file, stor
 		let new_size = fs.statSync(image_file_path).size;
 
 		if (old_size > new_size) {
-			console.log('skipped because exist bigger optimized image', archive_folder_path);
+			// console.log('skipped because exist bigger optimized image', archive_folder_path);
 			return false;
 		}
 
