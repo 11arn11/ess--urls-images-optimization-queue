@@ -5,6 +5,7 @@ const RateLimiter = require('limitme');
 const crawler     = require('./workers/crawler');
 const psi_fetcher = require('./workers/psi_fetcher');
 const pso_fetcher = require('./workers/pso_fetcher');
+const uploader    = require('./workers/uploader');
 
 const config = require('./config');
 
@@ -40,6 +41,14 @@ try {
 		google_psi_api_key     : config.google_psi_api_key,
 		storage                : config.storage,
 		domain_filter          : site.domain_filter
+	});
+
+	uploader({
+		redis             : config.redis,
+		source_queue_name : step3_queue,
+		storage           : config.storage,
+		ftp               : site.ftp,
+		site_name         : site.name
 	});
 
 } catch (err) {

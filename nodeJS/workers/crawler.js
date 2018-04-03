@@ -61,7 +61,9 @@ module.exports = async function (config) {
 
 		console.log('crawler complete');
 
-		destinationQueue.add(message.complete());
+		destinationQueue.add(message.complete(), {
+			jobId : 'crawler complete'
+		});
 
 	});
 

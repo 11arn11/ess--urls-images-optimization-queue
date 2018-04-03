@@ -3,3 +3,4 @@
 /nodeJS/node_modules/
 /docker-compose.yml
 /nodeJS/config.js
+/log/

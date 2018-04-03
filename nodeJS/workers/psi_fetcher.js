@@ -30,7 +30,9 @@ module.exports = async function (config) {
 
 						console.log('psi_fetcher complete');
 
-						pagesToOptimizeQueue.add(message.complete());
+						pagesToOptimizeQueue.add(message.complete(), {
+							jobId: 'psi_fetcher complete'
+						});
 
 					}
 

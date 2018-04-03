@@ -42,9 +42,11 @@ module.exports = async function (config) {
 
 						console.log('pso_fetcher complete');
 
-						imagesToUploadQueue.add(message.complete());
+						imagesToUploadQueue.add(message.complete(), {
+							jobId : 'pso_fetcher complete'
+						});
 
-						imagesToUploadQueue.resume();
+						await imagesToUploadQueue.resume();
 
 					}
 
@@ -325,10 +327,12 @@ function file_version_exists(archive_folder_path, md5, version) {
 	let extension = path.extname(archive_folder_path);
 
 	let wildcard_expression;
-	if (version === undefined)
+	if (version === undefined) {
 		wildcard_expression = archive_folder_path + '/*' + md5 + extension;
-	else
+	}
+	else {
 		wildcard_expression = archive_folder_path + '/*' + '__' + version + '__' + md5 + extension;
+	}
 
 	let files = glob.sync(wildcard_expression);
 

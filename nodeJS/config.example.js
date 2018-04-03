@@ -10,7 +10,8 @@ module.exports = {
 	storage : {
 		output  : 'temp/optimized',
 		archive : 'temp/archive',
-		zip     : 'temp/zip'
+		zip     : 'temp/zip',
+		log     : 'log'
 	},
 
 	sites : {
@@ -22,13 +23,22 @@ module.exports = {
 				'www.domain1.com',
 				'www.domain2.com'
 			],
+			ftp           : {
+				host          : 'FTP_HOST',
+				port          : 'FTP_PORT',
+				user          : 'FTP_USER',
+				password      : 'FTP_PASSWORD',
+				path          : 'FTP_PATH',
+				remove_domain : true, // TRUE to filter domain folder
+			}
 		},
 
 	},
 
 	queue : {
 		step1 : 'pages',
-		step2 : 'pagesToOptimize'
+		step2 : 'pagesToOptimize',
+		step3 : 'imagesToUpload',
 	},
 
 };

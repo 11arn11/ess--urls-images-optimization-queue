@@ -12,5 +12,6 @@ uploader({
 	redis             : config.redis,
 	source_queue_name : step3_queue,
 	storage           : config.storage,
-	smtp              : config.smtp
+	ftp               : site.ftp,
+	site_name         : site.name
 });
