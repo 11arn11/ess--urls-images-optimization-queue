@@ -8,10 +8,21 @@ module.exports = {
 	google_psi_api_key : "YOUR_GOOGLE_PSI_API_KEY",
 
 	storage : {
-		output  : 'temp/optimized',
-		archive : 'temp/archive',
-		zip     : 'temp/zip',
-		log     : 'log'
+		output    : 'temp/optimized',
+		archive   : 'temp/archive',
+		zip       : 'temp/zip',
+		log       : 'log',
+		semaphore : 'temp'
+	},
+
+	smtp : {
+		host   : "YOUR_smtp_HOST",
+		port   : "YOUR_smtp_PORT",
+		secure : false,
+		auth   : {
+			user : "YOUR_smtp_USERNAME",
+			pass : "YOUR_smtp_PASSWORD"
+		}
 	},
 
 	sites : {

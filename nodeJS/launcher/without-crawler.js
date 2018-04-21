@@ -1,13 +1,12 @@
-const args = require('./modules/cli')();
+const args = require('../modules/cli')();
 
 const RateLimiter = require('limitme');
 
-const crawler     = require('./workers/crawler');
-const psi_fetcher = require('./workers/psi_fetcher');
-const pso_fetcher = require('./workers/pso_fetcher');
-const uploader    = require('./workers/uploader');
+const psi_fetcher = require('../workers/psi_fetcher');
+const pso_fetcher = require('../workers/pso_fetcher');
+const uploader    = require('../workers/uploader');
 
-const config = require('./config');
+const config = require('../config');
 
 let site = config.sites[args.site];
 
@@ -16,14 +15,6 @@ let step2_queue = site.name + '/' + config.queue.step2;
 let step3_queue = site.name + '/' + config.queue.step3;
 
 try {
-
-	crawler({
-		site_name              : site.name,
-		semaphore_path         : config.storage.semaphore,
-		redis                  : config.redis,
-		destination_queue_name : step1_queue,
-		homepage               : site.homepage
-	});
 
 	const rate_limiter = new RateLimiter(2000);
 
@@ -57,6 +48,6 @@ try {
 
 } catch (err) {
 
-	console.error('errore', err);
+	console.error(err)
 
 }

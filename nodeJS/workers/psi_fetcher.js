@@ -3,7 +3,7 @@ const Queue = require('bull');
 const message            = require('../modules/message');
 const page_speed_insight = require('../modules/page-speed-insight');
 
-module.exports = async function (config) {
+module.exports = function (config) {
 
 	check_config(config);
 
@@ -19,19 +19,23 @@ module.exports = async function (config) {
 
 			if (message.is_complete(job.data)) {
 
-				pagesQueue.on('completed', async function (job, result) {
+				console.log('complete message receive');
+
+				pagesQueue.on('global:completed', async function (completedJobId, result) {
+
+					console.log('on global completed', completedJobId);
 
 					let count_waiting = await pagesQueue.getWaitingCount();
 					let count_active  = await pagesQueue.getActiveCount();
 
-					console.log(count_waiting, count_active);
+					console.log('psi countdown', count_waiting, count_active);
 
 					if (count_waiting === 0 && count_active === 0) {
 
 						console.log('psi_fetcher complete');
 
 						pagesToOptimizeQueue.add(message.complete(), {
-							jobId: 'psi_fetcher complete'
+							jobId : 'psi_fetcher complete'
 						});
 
 					}
@@ -48,7 +52,7 @@ module.exports = async function (config) {
 
 			url = job.data.url;
 
-			psi = await page_speed_insight(url, config.google_psi_api_key, config.rate_limiter);
+			psi = await page_speed_insight(url, config.google_psi_api_key, config.rate_limiter, config.proxy_url);
 
 			let imageOptimizationRuleImpact = psi.formattedResults.ruleResults.OptimizeImages.ruleImpact;
 

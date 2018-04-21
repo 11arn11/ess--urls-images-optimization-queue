@@ -1,10 +1,10 @@
-const args = require('./modules/cli')();
+const args = require('../modules/cli')();
 
 const RateLimiter = require('limitme');
 
-const psi_fetcher = require('./workers/psi_fetcher');
+const psi_fetcher = require('../workers/psi_fetcher');
 
-const config = require('./config');
+const config = require('../config');
 
 const rate_limiter = new RateLimiter(2000);
 

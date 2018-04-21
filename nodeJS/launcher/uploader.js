@@ -1,8 +1,8 @@
-const args = require('./modules/cli')();
+const args = require('../modules/cli')();
 
-const uploader = require('./workers/uploader');
+const uploader = require('../workers/uploader');
 
-const config = require('./config');
+const config = require('../config');
 
 let site = config.sites[args.site];
 
@@ -13,5 +13,7 @@ uploader({
 	source_queue_name : step3_queue,
 	storage           : config.storage,
 	ftp               : site.ftp,
-	site_name         : site.name
+	status            : true,
+	semaphore_path    : config.storage.semaphore,
+	site_name         : site.name,
 });

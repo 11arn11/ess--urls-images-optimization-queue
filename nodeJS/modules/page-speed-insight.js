@@ -1,6 +1,6 @@
 const request = require('request-promise');
 
-module.exports = async function page_speed_insight(url, psi_key, throttle_psi) {
+module.exports = async function page_speed_insight(url, psi_key, throttle_psi, proxy_url) {
 
 	let config = {
 
@@ -21,7 +21,11 @@ module.exports = async function page_speed_insight(url, psi_key, throttle_psi) {
 				url  : 'https://www.googleapis.com/pagespeedonline/v4/runPagespeed',
 				qs   : config,
 				json : true,
+
 			};
+
+			if (proxy_url)
+				options.proxy = proxy_url;
 
 			return await request(options);
 

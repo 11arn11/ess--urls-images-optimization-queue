@@ -2,7 +2,9 @@ const Queue      = require('bull');
 const PromiseFtp = require('promise-ftp');
 const path       = require('path');
 
-const message = require('../modules/message');
+const message       = require('../modules/message');
+const mail_notifier = require('../modules/mail-notifier');
+const semaphore     = require('../modules/fs-semaphore');
 
 const file_logger = require('../modules/file-logger');
 
@@ -16,7 +18,8 @@ module.exports = async function (config) {
 
 	let ftp_config = config.ftp;
 
-	await imagesToUploadQueue.pause();
+	if (config.status === false)
+		await imagesToUploadQueue.pause();
 
 	imagesToUploadQueue.process(5, async function (job, done) {
 
@@ -43,6 +46,24 @@ module.exports = async function (config) {
 					if (count_waiting === 0 && count_active === 0) {
 
 						console.log('uploader complete');
+
+						semaphore.set_green_light(config.semaphore_path, config.site_name);
+
+						await mail_notifier(config.smtp, {
+							from        : '"✔ ESS - URLs Images Optimization Queue 👻" <ess--urls-iamges-optimization-queue@mail-delivery.it>',
+							to          : 'andrea.nigro@ogilvy.com',
+							subject     : 'Oggetto della mail',
+							text        : [
+								'Il processo è terminato',
+								'',
+								'ciao',
+								'Andrea R.'
+							].join('\n'),
+							attachments : [{
+								path : log_file_path
+							}]
+						});
+
 						process.exit();
 
 					}
@@ -130,6 +151,21 @@ function check_config(config) {
 
 	if (!config.ftp)
 		throw new Error('ftp config not found');
+
+	if (config.status === undefined)
+		throw new Error('status not found');
+
+	if (typeof(config.status) !== "boolean")
+		throw new Error('Invalid status value. Must be boolean');
+
+	if (!config.semaphore_path)
+		throw new Error('Semaphore Path URL not found');
+
+	if (!config.site_name)
+		throw new Error('Site Name not found');
+
+	if (!config.smtp)
+		throw new Error('SMTP congif not found');
 
 }
 

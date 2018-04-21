@@ -15,7 +15,7 @@ const Queue = require('bull');
 const message                 = require('../modules/message');
 const page_speed_optimization = require('../modules/page-speed-optimization');
 
-module.exports = async function (config) {
+module.exports = function (config) {
 
 	check_config(config);
 
@@ -31,12 +31,16 @@ module.exports = async function (config) {
 
 			if (message.is_complete(job.data)) {
 
-				pagesToOptimizeQueue.on('completed', async function (job, result) {
+				console.log('complete message receive');
+
+				pagesToOptimizeQueue.on('global:completed', async function (completedJobId, result) {
+
+					console.log('on global completed', completedJobId);
 
 					let count_waiting = await pagesToOptimizeQueue.getWaitingCount();
 					let count_active  = await pagesToOptimizeQueue.getActiveCount();
 
-					console.log(count_waiting, count_active);
+					console.log('pso countdown', count_waiting, count_active);
 
 					if (count_waiting === 0 && count_active === 0) {
 
@@ -64,7 +68,7 @@ module.exports = async function (config) {
 
 			// console.log('processing', url);
 
-			pso = await page_speed_optimization(url, config.google_psi_api_key, config.rate_limiter);
+			pso = await page_speed_optimization(url, config.google_psi_api_key, config.rate_limiter, config.proxy_url);
 
 			// salva lo zip scaricato e lo decomprime
 			temp_folder = await save_optimized_files(pso, config.storage.zip);

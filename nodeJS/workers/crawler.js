@@ -1,9 +1,10 @@
 const Crawler = require('simplecrawler');
 const Queue   = require('bull');
 
-const message = require('../modules/message');
+const semaphore = require('../modules/fs-semaphore');
+const message   = require('../modules/message');
 
-module.exports = async function (config) {
+module.exports = function (config) {
 
 	if (!config)
 		throw new Error('Config non found');
@@ -16,6 +17,17 @@ module.exports = async function (config) {
 
 	if (!config.homepage)
 		throw new Error('Homepage URL not found');
+
+	if (!config.semaphore_path)
+		throw new Error('Semaphore Path URL not found');
+
+	if (!config.site_name)
+		throw new Error('Site Name not found');
+
+	if (!semaphore.is_green_light(config.semaphore_path, config.site_name))
+		throw new Error('Another crawler is running for "' + config.site_name + '"');
+
+	semaphore.set_red_light(config.semaphore_path, config.site_name)
 
 	let destinationQueue = new Queue(config.destination_queue_name, {redis : config.redis});
 

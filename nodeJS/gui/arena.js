@@ -25,6 +25,12 @@ for (let c = 0; c < Object.keys(config.sites).length; c++) {
 
 }
 
+queues.push({
+	name     : 'paused',
+	'hostId' : config.redis.host,
+	redis    : config.redis
+});
+
 const options = {
 	queues : queues
 };
