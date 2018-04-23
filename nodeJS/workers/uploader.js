@@ -47,9 +47,7 @@ module.exports = async function (config) {
 
 						console.log('uploader complete');
 
-						semaphore.set_green_light(config.semaphore_path, config.site_name);
-
-						await mail_notifier(config.smtp, {
+						let message = await mail_notifier(config.smtp, {
 							from        : '"✔ ESS - URLs Images Optimization Queue 👻" <ess--urls-iamges-optimization-queue@mail-delivery.it>',
 							to          : 'andrea.nigro@ogilvy.com',
 							subject     : 'Oggetto della mail',
@@ -63,6 +61,10 @@ module.exports = async function (config) {
 								path : log_file_path
 							}]
 						});
+
+						console.log(message);
+
+						semaphore.set_green_light(config.semaphore_path, config.site_name);
 
 						process.exit();
 

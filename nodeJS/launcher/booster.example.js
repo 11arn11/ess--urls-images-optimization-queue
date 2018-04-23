@@ -15,19 +15,6 @@ let step1_queue = site.name + '/' + config.queue.step1;
 let step2_queue = site.name + '/' + config.queue.step2;
 let step3_queue = site.name + '/' + config.queue.step3;
 
-let psi_settings = [
-	[2000, 'YOUR_PSI_API_KEY', 'localhost'],
-	[2000, 'YOUR_PSI_API_KEY', 'localhost'],
-	[2000, 'YOUR_PSI_API_KEY', 'localhost'],
-	[2000, 'YOUR_PSO_API_KEY', 'localhost'],
-];
-
-let pso_settings = [
-	[2000, 'YOUR_PSO_API_KEY', 'localhost'],
-	[2000, 'YOUR_PSO_API_KEY', 'localhost'],
-	[2000, 'YOUR_PSO_API_KEY', 'localhost'],
-];
-
 try {
 
 	// Crawler
@@ -40,7 +27,12 @@ try {
 	});
 
 	// PSI
-	psi_settings.forEach(function (settings) {
+	[
+		[2000, 'YOUR_PSI_API_KEY', 'localhost'],
+		[2000, 'YOUR_PSI_API_KEY', 'localhost'],
+		[2000, 'YOUR_PSI_API_KEY', 'localhost'],
+		[2000, 'YOUR_PSO_API_KEY', 'localhost'],
+	].forEach(function (settings) {
 
 		let proxy_url = settings[2] | null;
 
@@ -58,7 +50,11 @@ try {
 	});
 
 	// PSO
-	pso_settings.forEach(function (settings) {
+	[
+		[2000, 'YOUR_PSO_API_KEY', 'localhost'],
+		[2000, 'YOUR_PSO_API_KEY', 'localhost'],
+		[2000, 'YOUR_PSO_API_KEY', 'localhost'],
+	].forEach(function (settings) {
 
 		let proxy_url = settings[2] | null;
 

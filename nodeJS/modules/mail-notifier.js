@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer');
+const mailer = require('nodemailer-promise');
 
 module.exports = async function (smtp_config, message) {
 
@@ -20,28 +20,10 @@ module.exports = async function (smtp_config, message) {
 	if (!message.attachments)
 		throw new Error('Attachments not found');
 
-	nodemailer.createTestAccount((err, account) => {
+	const config = require('../config');
 
-		if (err) {
-			return Promise.reject(err);
-		}
+	let sendEmail = mailer.config(config.smtp);
 
-		let transporter = nodemailer.createTransport(smtp_config);
-
-		return transporter.sendMail(message, (error, info) => {
-
-			if (error) {
-				return Promise.reject(err);
-			}
-
-			let output = 'Message sent: %s ' + info.messageId;
-
-			console.log(output);
-
-			return Promise.resolve(output)
-
-		});
-
-	});
+	return sendEmail(message);
 
 };
