@@ -172,7 +172,7 @@ async function log(config, local_file_path, remote_file_path, status, error) {
 
 }
 
-async function wait_for_finish(imagesToUploadQueue) {
+async function wait_for_finish(imagesToUploadQueue, config) {
 
 	let count_waiting = await imagesToUploadQueue.getWaitingCount();
 	let count_active  = await imagesToUploadQueue.getActiveCount();
