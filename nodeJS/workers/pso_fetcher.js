@@ -31,7 +31,7 @@ module.exports = function (config) {
 
 			if (message.is_complete(job.data)) {
 
-				console.log('complete message receive');
+				console.log('PSO complete message receive');
 
 				pagesToOptimizeQueue.on('global:completed', async function (completedJobId, result) {
 

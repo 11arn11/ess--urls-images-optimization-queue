@@ -41,22 +41,24 @@ module.exports = function (config) {
 
 		try {
 
-			if (queueItem.stateData.contentType.match('text/html')) {
+			if (queueItem.stateData.contentType !== undefined) {
+				if (queueItem.stateData.contentType.match('text/html')) {
 
-				// console.log(queueItem.stateData.contentType, queueItem.url);
+					// console.log(queueItem.stateData.contentType, queueItem.url);
 
-				let jobId = queueItem.url.replace(/\//g, '_').replace(/:/g, '').replace(/\./g, '_');
+					let jobId = queueItem.url.replace(/\//g, '_').replace(/:/g, '').replace(/\./g, '_');
 
-				// console.log('jobId', jobId);
+					// console.log('jobId', jobId);
 
-				destinationQueue.add({
-					url   : queueItem.url,
-					step0 : queueItem
-				}, {
-					jobId    : jobId,
-					attempts : 10
-				});
+					destinationQueue.add({
+						url   : queueItem.url,
+						step0 : queueItem
+					}, {
+						jobId    : jobId,
+						attempts : 10
+					});
 
+				}
 			}
 
 		} catch (err) {

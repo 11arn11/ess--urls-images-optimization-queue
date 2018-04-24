@@ -32,20 +32,19 @@ module.exports = async function (config) {
 
 			if (message.is_complete(job.data)) {
 
-				imagesToUploadQueue.on('completed', async function (job, result) {
+				console.log('UPLOADER complete message receive');
 
-					done(null, {
-						'status' : 'completed'
-					});
+				imagesToUploadQueue.on('global:completed', async function (job, result) {
+
+					console.log('on global completed', completedJobId);
 
 					let count_waiting = await imagesToUploadQueue.getWaitingCount();
 					let count_active  = await imagesToUploadQueue.getActiveCount();
 
-					console.log(count_waiting, count_active);
+					console.log('uploader countdown', count_waiting, count_active);
 
 					if (count_waiting === 0 && count_active === 0) {
 
-						console.log('uploader complete');
 
 						let message = await mail_notifier(config.smtp, {
 							from        : '"✔ ESS - URLs Images Optimization Queue 👻" <ess--urls-iamges-optimization-queue@mail-delivery.it>',
@@ -70,6 +69,10 @@ module.exports = async function (config) {
 
 					}
 
+				});
+
+				done(null, {
+					'status' : 'completed'
 				});
 
 				return;
