@@ -33,27 +33,21 @@ module.exports = function (config) {
 
 				console.log('PSO complete message receive');
 
-				pagesToOptimizeQueue.on('global:completed', async function (completedJobId, result) {
-
-					console.log('on global completed', completedJobId);
-
-					let count_waiting = await pagesToOptimizeQueue.getWaitingCount();
-					let count_active  = await pagesToOptimizeQueue.getActiveCount();
-
-					console.log('pso countdown', count_waiting, count_active);
-
-					if (count_waiting === 0 && count_active === 0) {
-
-						console.log('pso_fetcher complete');
-
-						imagesToUploadQueue.add(message.complete(), {
-							jobId : 'pso_fetcher complete'
-						});
-
-						await imagesToUploadQueue.resume();
-
-					}
-
+				pagesToOptimizeQueue.on('global:completed', async function (jobId, result) {
+					console.log('on global completed', jobId);
+					await wait_for_finish(pagesToOptimizeQueue, imagesToUploadQueue);
+				});
+				pagesToOptimizeQueue.on('global:error', async function (err) {
+					console.log('on global error', err);
+					await wait_for_finish(pagesToOptimizeQueue, imagesToUploadQueue);
+				});
+				pagesToOptimizeQueue.on('global:failed', async function (jobId, err) {
+					console.log('on global failes', jobId);
+					await wait_for_finish(pagesToOptimizeQueue, imagesToUploadQueue);
+				});
+				pagesToOptimizeQueue.on('global:stalled', async function (jobId) {
+					console.log('on global stalled', jobId);
+					await wait_for_finish(pagesToOptimizeQueue, imagesToUploadQueue);
 				});
 
 				done(null, {
@@ -343,4 +337,25 @@ function file_version_exists(archive_folder_path, md5, version) {
 	// process.exit();
 
 	return files.length > 0;
+}
+
+async function wait_for_finish(pagesToOptimizeQueue, imagesToUploadQueue) {
+
+	let count_waiting = await pagesToOptimizeQueue.getWaitingCount();
+	let count_active  = await pagesToOptimizeQueue.getActiveCount();
+
+	console.log('pso countdown', count_waiting, count_active);
+
+	if (count_waiting === 0 && count_active === 0) {
+
+		console.log('pso_fetcher complete');
+
+		imagesToUploadQueue.add(message.complete(), {
+			jobId : 'pso_fetcher complete'
+		});
+
+		await imagesToUploadQueue.resume();
+
+	}
+
 }

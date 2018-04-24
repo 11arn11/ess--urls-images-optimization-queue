@@ -46,6 +46,10 @@ module.exports = async function (config) {
 					console.log('on global failes', jobId);
 					await wait_for_finish(imagesToUploadQueue);
 				});
+				imagesToUploadQueue.on('global:stalled', async function (jobId) {
+					console.log('on global stalled', jobId);
+					await wait_for_finish(imagesToUploadQueue);
+				});
 
 				done(null, {
 					'status' : 'completed'

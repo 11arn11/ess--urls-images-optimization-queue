@@ -21,25 +21,21 @@ module.exports = function (config) {
 
 				console.log('complete message receive');
 
-				pagesQueue.on('global:completed', async function (completedJobId, result) {
-
-					console.log('on global completed', completedJobId);
-
-					let count_waiting = await pagesQueue.getWaitingCount();
-					let count_active  = await pagesQueue.getActiveCount();
-
-					console.log('psi countdown', count_waiting, count_active);
-
-					if (count_waiting === 0 && count_active === 0) {
-
-						console.log('psi_fetcher complete');
-
-						pagesToOptimizeQueue.add(message.complete(), {
-							jobId : 'psi_fetcher complete'
-						});
-
-					}
-
+				pagesQueue.on('global:completed', async function (jobId, result) {
+					console.log('on global completed', jobId);
+					await wait_for_finish(pagesQueue, pagesToOptimizeQueue);
+				});
+				pagesQueue.on('global:error', async function (err) {
+					console.log('on global error', err);
+					await wait_for_finish(pagesQueue, pagesToOptimizeQueue);
+				});
+				pagesQueue.on('global:failed', async function (jobId, err) {
+					console.log('on global failes', jobId);
+					await wait_for_finish(pagesQueue, pagesToOptimizeQueue);
+				});
+				pagesQueue.on('global:stalled', async function (jobId) {
+					console.log('on global stalled', jobId);
+					await wait_for_finish(pagesQueue, pagesToOptimizeQueue);
 				});
 
 				done(null, {
@@ -115,5 +111,24 @@ function check_config(config) {
 
 	if (!config.google_psi_api_key)
 		throw new Error('google_psi_api_key not found');
+
+}
+
+async function wait_for_finish(pagesQueue, pagesToOptimizeQueue) {
+
+	let count_waiting = await pagesQueue.getWaitingCount();
+	let count_active  = await pagesQueue.getActiveCount();
+
+	console.log('psi countdown', count_waiting, count_active);
+
+	if (count_waiting === 0 && count_active === 0) {
+
+		console.log('psi_fetcher complete');
+
+		pagesToOptimizeQueue.add(message.complete(), {
+			jobId : 'psi_fetcher complete'
+		});
+
+	}
 
 }
