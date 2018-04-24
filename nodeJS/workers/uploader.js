@@ -36,19 +36,19 @@ module.exports = async function (config) {
 
 				imagesToUploadQueue.on('global:completed', async function (jobId, result) {
 					console.log('on global completed', jobId);
-					await wait_for_finish(imagesToUploadQueue);
+					await wait_for_finish(imagesToUploadQueue, config);
 				});
 				imagesToUploadQueue.on('global:error', async function (err) {
 					console.log('on global error', err);
-					await wait_for_finish(imagesToUploadQueue);
+					await wait_for_finish(imagesToUploadQueue, config);
 				});
 				imagesToUploadQueue.on('global:failed', async function (jobId, err) {
 					console.log('on global failes', jobId);
-					await wait_for_finish(imagesToUploadQueue);
+					await wait_for_finish(imagesToUploadQueue, config);
 				});
 				imagesToUploadQueue.on('global:stalled', async function (jobId) {
 					console.log('on global stalled', jobId);
-					await wait_for_finish(imagesToUploadQueue);
+					await wait_for_finish(imagesToUploadQueue, config);
 				});
 
 				done(null, {
