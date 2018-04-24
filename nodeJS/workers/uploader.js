@@ -34,7 +34,7 @@ module.exports = async function (config) {
 
 				console.log('UPLOADER complete message receive');
 
-				imagesToUploadQueue.on('global:completed', async function (job, result) {
+				imagesToUploadQueue.on('global:completed', async function (completedJobId, result) {
 
 					console.log('on global completed', completedJobId);
 
