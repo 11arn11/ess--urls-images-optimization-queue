@@ -34,41 +34,17 @@ module.exports = async function (config) {
 
 				console.log('UPLOADER complete message receive');
 
-				imagesToUploadQueue.on('global:completed', async function (completedJobId, result) {
-
-					console.log('on global completed', completedJobId);
-
-					let count_waiting = await imagesToUploadQueue.getWaitingCount();
-					let count_active  = await imagesToUploadQueue.getActiveCount();
-
-					console.log('uploader countdown', count_waiting, count_active);
-
-					if (count_waiting === 0 && count_active === 0) {
-
-
-						let message = await mail_notifier(config.smtp, {
-							from        : '"✔ ESS - URLs Images Optimization Queue 👻" <ess--urls-iamges-optimization-queue@mail-delivery.it>',
-							to          : 'andrea.nigro@ogilvy.com',
-							subject     : 'Oggetto della mail',
-							text        : [
-								'Il processo è terminato',
-								'',
-								'ciao',
-								'Andrea R.'
-							].join('\n'),
-							attachments : [{
-								path : log_file_path
-							}]
-						});
-
-						console.log(message);
-
-						semaphore.set_green_light(config.semaphore_path, config.site_name);
-
-						process.exit();
-
-					}
-
+				imagesToUploadQueue.on('global:completed', async function (jobId, result) {
+					console.log('on global completed', jobId);
+					await wait_for_finish(imagesToUploadQueue);
+				});
+				imagesToUploadQueue.on('global:error', async function (err) {
+					console.log('on global error', err);
+					await wait_for_finish(imagesToUploadQueue);
+				});
+				imagesToUploadQueue.on('global:failed', async function (jobId, err) {
+					console.log('on global failes', jobId);
+					await wait_for_finish(imagesToUploadQueue);
 				});
 
 				done(null, {
@@ -189,5 +165,39 @@ async function log(config, local_file_path, remote_file_path, status, error) {
 	}
 
 	await file_logger(log_file_path, [local_file_path, remote_file_path], status, error);
+
+}
+
+async function wait_for_finish(imagesToUploadQueue) {
+
+	let count_waiting = await imagesToUploadQueue.getWaitingCount();
+	let count_active  = await imagesToUploadQueue.getActiveCount();
+
+	console.log('uploader countdown', count_waiting, count_active);
+
+	if (count_waiting === 0 && count_active === 0) {
+
+		let message = await mail_notifier(config.smtp, {
+			from        : '"✔ ESS - URLs Images Optimization Queue 👻" <ess--urls-iamges-optimization-queue@mail-delivery.it>',
+			to          : 'andrea.nigro@ogilvy.com',
+			subject     : 'Oggetto della mail',
+			text        : [
+				'Il processo è terminato',
+				'',
+				'ciao',
+				'Andrea R.'
+			].join('\n'),
+			attachments : [{
+				path : log_file_path
+			}]
+		});
+
+		console.log(message);
+
+		semaphore.set_green_light(config.semaphore_path, config.site_name);
+
+		process.exit();
+
+	}
 
 }
