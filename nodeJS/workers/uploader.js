@@ -124,12 +124,14 @@ module.exports = async function (config) {
 				error : err,
 			});
 
+			/*
 			console.error();
 			console.error(err.toString());
 			console.error('da', local_file_path);
 			console.error('a', remote_file_path);
 			console.error('folder', remote_folder);
 			console.error();
+			*/
 
 		}
 
