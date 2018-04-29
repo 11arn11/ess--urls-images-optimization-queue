@@ -68,7 +68,11 @@ try {
 			google_psi_api_key     : akrl.api_key,
 			proxy                  : akrl.proxy_url,
 			storage                : config.storage,
-			domain_filter          : site.domain_filter
+			domain_filter          : site.domain_filter,
+			//
+			semaphore_path         : config.storage.semaphore,
+			site_name              : site.name,
+			smtp                   : config.smtp
 		});
 
 	});

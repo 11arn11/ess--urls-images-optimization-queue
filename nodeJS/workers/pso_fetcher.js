@@ -9,6 +9,8 @@ const md5File            = require('md5-file');
 const dateTime           = require('node-datetime');
 const request            = require('request-promise');
 const glob               = require('glob');
+const mail_notifier      = require('../modules/mail-notifier');
+const semaphore          = require('../modules/fs-semaphore');
 
 const Queue = require('bull');
 
@@ -21,7 +23,10 @@ module.exports = function (config) {
 
 	const pagesToOptimizeQueue = new Queue(config.source_queue_name, {redis : config.redis});
 
-	const imagesToUploadQueue = new Queue(config.destination_queue_name, {redis : config.redis});
+	const imagesToUploadQueue = config.destination_queue_name !== undefined
+		? new Queue(config.destination_queue_name, {redis : config.redis})
+		: null
+	;
 
 	pagesToOptimizeQueue.process(10, async function (job, done) {
 
@@ -35,19 +40,19 @@ module.exports = function (config) {
 
 				pagesToOptimizeQueue.on('global:completed', async function (jobId, result) {
 					console.log('on global completed', jobId);
-					await wait_for_finish(pagesToOptimizeQueue, imagesToUploadQueue);
+					await wait_for_finish(pagesToOptimizeQueue, imagesToUploadQueue, config);
 				});
 				pagesToOptimizeQueue.on('global:error', async function (err) {
 					console.log('on global error', err);
-					await wait_for_finish(pagesToOptimizeQueue, imagesToUploadQueue);
+					await wait_for_finish(pagesToOptimizeQueue, imagesToUploadQueue, config);
 				});
 				pagesToOptimizeQueue.on('global:failed', async function (jobId, err) {
 					console.log('on global failes', jobId);
-					await wait_for_finish(pagesToOptimizeQueue, imagesToUploadQueue);
+					await wait_for_finish(pagesToOptimizeQueue, imagesToUploadQueue, config);
 				});
 				pagesToOptimizeQueue.on('global:stalled', async function (jobId) {
 					console.log('on global stalled', jobId);
-					await wait_for_finish(pagesToOptimizeQueue, imagesToUploadQueue);
+					await wait_for_finish(pagesToOptimizeQueue, imagesToUploadQueue, config);
 				});
 
 				done(null, {
@@ -82,7 +87,7 @@ module.exports = function (config) {
 
 				let image_url = file_map[image_path];
 
-				let local_image_url = image_url.replace('https://', '').replace('http://', '');
+				let local_image_url = decodeURI(image_url.replace('https://', '').replace('http://', ''));
 
 				let domain_included = 1;
 
@@ -106,14 +111,18 @@ module.exports = function (config) {
 
 					if (optimized) {
 
-						let jobId = local_image_url.replace(/\//g, '_').replace(/:/g, '').replace(/\./g, '_');
+						if (imagesToUploadQueue) {
 
-						imagesToUploadQueue.add({
-							url : local_image_url,
-						}, {
-							jobId    : jobId,
-							attempts : 10
-						});
+							let jobId = local_image_url.replace(/\//g, '_').replace(/:/g, '').replace(/\./g, '_');
+
+							imagesToUploadQueue.add({
+								url : local_image_url,
+							}, {
+								jobId    : jobId,
+								attempts : 10
+							});
+
+						}
 
 					}
 
@@ -169,9 +178,6 @@ function check_config(config) {
 	if (!config.source_queue_name)
 		throw new Error('source_queue_name not found');
 
-	if (!config.destination_queue_name)
-		throw new Error('destination_queue_name not found');
-
 	if (!config.rate_limiter)
 		throw new Error('RateLimiter instance not found');
 
@@ -189,6 +195,19 @@ function check_config(config) {
 
 	if (!config.storage.output)
 		throw new Error('output storage folder not found');
+
+	if (!config.destination_queue_name) {
+
+		if (!config.semaphore_path)
+			throw new Error('Semaphore Path URL not found');
+
+		if (!config.site_name)
+			throw new Error('Site Name not found');
+
+		if (!config.smtp)
+			throw new Error('SMTP congif not found');
+
+	}
 
 }
 
@@ -304,7 +323,7 @@ function save_optimazed_file(image_file_path, local_image_url, master_file, stor
 		let new_size = fs.statSync(image_file_path).size;
 
 		if (old_size > new_size) {
-			// console.log('skipped because exist bigger optimized image', archive_folder_path);
+			console.log('skipped because exist bigger optimized image', archive_folder_path);
 			return false;
 		}
 
@@ -339,7 +358,7 @@ function file_version_exists(archive_folder_path, md5, version) {
 	return files.length > 0;
 }
 
-async function wait_for_finish(pagesToOptimizeQueue, imagesToUploadQueue) {
+async function wait_for_finish(pagesToOptimizeQueue, imagesToUploadQueue, config) {
 
 	let count_waiting = await pagesToOptimizeQueue.getWaitingCount();
 	let count_active  = await pagesToOptimizeQueue.getActiveCount();
@@ -350,11 +369,35 @@ async function wait_for_finish(pagesToOptimizeQueue, imagesToUploadQueue) {
 
 		console.log('pso_fetcher complete');
 
-		imagesToUploadQueue.add(message.complete(), {
-			jobId : 'pso_fetcher complete'
-		});
+		if (imagesToUploadQueue) {
 
-		await imagesToUploadQueue.resume();
+			imagesToUploadQueue.add(message.complete(), {
+				jobId : 'pso_fetcher complete'
+			});
+
+			await imagesToUploadQueue.resume();
+
+		} else {
+
+			let message = await mail_notifier(config.smtp, {
+				from    : '"✔ ESS - URLs Images Optimization Queue 👻" <ess--urls-iamges-optimization-queue@mail-delivery.it>',
+				to      : 'andrea.nigro@ogilvy.com',
+				subject : 'Oggetto della mail',
+				text    : [
+					'Il processo di ottimizzazione delle immagini è terminato',
+					'',
+					'ciao',
+					'Andrea R.'
+				].join('\n'),
+			});
+
+			console.log(message);
+
+			semaphore.set_green_light(config.semaphore_path, config.site_name);
+
+			process.exit();
+
+		}
 
 	}
 

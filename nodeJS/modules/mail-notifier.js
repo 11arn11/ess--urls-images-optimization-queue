@@ -17,9 +17,6 @@ module.exports = async function (smtp_config, message) {
 	if (!message.text)
 		throw new Error('Body not found');
 
-	if (!message.attachments)
-		throw new Error('Attachments not found');
-
 	const config = require('../config');
 
 	let sendEmail = mailer.config(config.smtp);
