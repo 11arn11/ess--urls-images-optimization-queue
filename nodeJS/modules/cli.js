@@ -27,12 +27,12 @@ module.exports = function () {
 	}
 
 	if (!program.site) {
-		console.error('Error: site argument missing');
+		console.log('Error: site argument missing');
 		process.exit();
 	}
 
 	if (!Object.keys(config.sites).includes(program.site)) {
-		console.error('Error: site configuration missing for "' + program.site + '"');
+		console.log('Error: site configuration missing for "' + program.site + '"');
 		process.exit();
 	}
 

@@ -25,7 +25,7 @@
 
 	} catch (e) {
 
-		console.error(e);
+		console.log('error',e);
 
 		process.exit();
 
