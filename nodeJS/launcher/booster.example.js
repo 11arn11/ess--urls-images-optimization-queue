@@ -91,6 +91,6 @@ try {
 
 } catch (err) {
 
-	console.error('errore', err);
+	console.log('errore', err);
 
 }
