@@ -55,7 +55,7 @@ module.exports = function (config) {
 						step0 : queueItem
 					}, {
 						jobId    : jobId,
-						attempts : 10
+						attempts : 2
 					});
 
 				}
