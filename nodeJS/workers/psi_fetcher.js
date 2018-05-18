@@ -67,6 +67,7 @@ module.exports = function (config) {
 				});
 
 				done(null, {
+					proxy        : config.proxy_url || 'localhost',
 					'status'     : '2opt',
 					'ruleImpact' : imageOptimizationRuleImpact,
 				});
@@ -74,6 +75,7 @@ module.exports = function (config) {
 			} else {
 
 				done(null, {
+					proxy    : config.proxy_url || 'localhost',
 					'status' : 'OK'
 				});
 

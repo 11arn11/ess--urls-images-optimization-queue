@@ -89,6 +89,7 @@ module.exports = async function (config) {
 			await log(config, local_file_path, remote_file_path);
 
 			done(null, {
+				proxy            : config.proxy_url || 'localhost',
 				config           : config,
 				local_file_path  : local_file_path,
 				remote_file_path : remote_file_path,

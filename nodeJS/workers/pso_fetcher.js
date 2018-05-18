@@ -136,7 +136,7 @@ module.exports = function (config) {
 			}
 
 			done(null, {
-
+				proxy             : config.proxy_url || 'localhost',
 				temp_folder       : temp_folder,
 				file_map          : file_map,
 				image_temp_folder : image_temp_folder,
