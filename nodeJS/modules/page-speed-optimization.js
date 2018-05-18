@@ -23,8 +23,8 @@ module.exports = async function page_speed_optimization(url, psi_key, throttle_p
 				encoding : null,
 			};
 
-			if (proxy_url){
-				options.proxy = proxy_url;
+			if (proxy_url) {
+				options.proxy  = proxy_url;
 				options.tunnel = true;
 			}
 

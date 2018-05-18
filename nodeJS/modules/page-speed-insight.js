@@ -24,8 +24,10 @@ module.exports = async function page_speed_insight(url, psi_key, throttle_psi, p
 
 			};
 
-			if (proxy_url)
-				options.proxy = proxy_url;
+			if (proxy_url) {
+				options.proxy  = proxy_url;
+				options.tunnel = true;
+			}
 
 			return await request(options);
 
