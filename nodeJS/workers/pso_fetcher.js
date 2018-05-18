@@ -30,7 +30,7 @@ module.exports = function (config) {
 
 	pagesToOptimizeQueue.process(10, async function (job, done) {
 
-		let url, pso, temp_folder, file_map, image_temp_folder, image_files;
+		let url, pso, temp_folder, file_map, image_temp_folder, image_files, proxy;
 
 		try {
 
@@ -64,6 +64,8 @@ module.exports = function (config) {
 			}
 
 			url = job.data.url;
+
+			proxy = config.proxy_url === undefined ? 'localhost' : config.proxy_url;
 
 			// console.log('processing', url);
 
@@ -136,7 +138,7 @@ module.exports = function (config) {
 			}
 
 			done(null, {
-
+				proxy             : proxy,
 				temp_folder       : temp_folder,
 				file_map          : file_map,
 				image_temp_folder : image_temp_folder,
@@ -152,6 +154,7 @@ module.exports = function (config) {
 			}
 
 			done(err, {
+				proxy             : proxy,
 				error             : err,
 				url               : url,
 				pso               : pso,
