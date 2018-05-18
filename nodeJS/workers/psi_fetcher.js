@@ -81,7 +81,7 @@ module.exports = function (config) {
 
 		} catch (err) {
 
-			done(err, {
+			done(new Error(config.proxy_url || 'localhost'), {
 				error : err,
 				url   : url,
 				psi   : psi
