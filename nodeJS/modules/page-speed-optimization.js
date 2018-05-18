@@ -21,11 +21,12 @@ module.exports = async function page_speed_optimization(url, psi_key, throttle_p
 				url      : 'https://developers.google.com/speed/pagespeed/insights/optimizeContents',
 				qs       : config,
 				encoding : null,
-				proxy    : proxy_url,
 			};
 
-			if (proxy_url)
+			if (proxy_url){
 				options.proxy = proxy_url;
+				options.tunnel = true;
+			}
 
 			return await request(options);
 
