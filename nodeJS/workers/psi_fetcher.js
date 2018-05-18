@@ -67,7 +67,6 @@ module.exports = function (config) {
 				});
 
 				done(null, {
-					proxy        : config.proxy_url || 'localhost',
 					'status'     : '2opt',
 					'ruleImpact' : imageOptimizationRuleImpact,
 				});
@@ -75,7 +74,6 @@ module.exports = function (config) {
 			} else {
 
 				done(null, {
-					proxy    : config.proxy_url === undefined ? 'localhost' : config.proxy_url,
 					'status' : 'OK'
 				});
 
@@ -83,7 +81,7 @@ module.exports = function (config) {
 
 		} catch (err) {
 
-			done(new Error(config.proxy_url === undefined ? 'localhost' : config.proxy_url), {
+			done(err, {
 				error : err,
 				url   : url,
 				psi   : psi

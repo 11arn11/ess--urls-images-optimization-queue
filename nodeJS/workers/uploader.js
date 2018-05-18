@@ -89,7 +89,6 @@ module.exports = async function (config) {
 			await log(config, local_file_path, remote_file_path);
 
 			done(null, {
-				proxy            : config.proxy_url === undefined ? 'localhost' : config.proxy_url,
 				config           : config,
 				local_file_path  : local_file_path,
 				remote_file_path : remote_file_path,
@@ -101,7 +100,7 @@ module.exports = async function (config) {
 
 			await log(config, local_file_path, remote_file_path, 'error', err.toString());
 
-			done(new Error(config.proxy_url === undefined ? 'localhost' : config.proxy_url), {
+			done(err, {
 				error : err,
 			});
 
