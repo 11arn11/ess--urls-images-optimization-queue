@@ -151,7 +151,7 @@ module.exports = function (config) {
 				// console.log('removed image temp folder', temp_folder);
 			}
 
-			done(err, {
+			done({
 				error             : err,
 				url               : url,
 				proxy             : config.proxy_url || 'localhost',
