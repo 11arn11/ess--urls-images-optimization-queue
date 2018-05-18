@@ -65,8 +65,6 @@ module.exports = function (config) {
 
 			url = job.data.url;
 
-			proxy = config.proxy_url === undefined ? 'localhost' : config.proxy_url;
-
 			// console.log('processing', url);
 
 			pso = await page_speed_optimization(url, config.google_psi_api_key, config.rate_limiter, config.proxy_url);
