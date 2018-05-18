@@ -136,7 +136,7 @@ module.exports = function (config) {
 			}
 
 			done(null, {
-				proxy             : config.proxy_url || 'localhost',
+				proxy             : config.proxy_url === undefined ? 'localhost' : config.proxy_url,
 				temp_folder       : temp_folder,
 				file_map          : file_map,
 				image_temp_folder : image_temp_folder,
@@ -151,7 +151,7 @@ module.exports = function (config) {
 				// console.log('removed image temp folder', temp_folder);
 			}
 
-			done(new Error(config.proxy_url || 'localhost'), {
+			done(new Error(config.proxy_url === undefined ? 'localhost' : config.proxy_url), {
 				error             : err,
 				url               : url,
 				proxy             : config.proxy_url || 'localhost',
