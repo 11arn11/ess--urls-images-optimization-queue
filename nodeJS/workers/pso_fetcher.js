@@ -154,7 +154,7 @@ module.exports = function (config) {
 			done(err, {
 				error             : err,
 				url               : url,
-				proxy             : config.proxy_url,
+				proxy             : config.proxy_url || 'localhost',
 				pso               : pso,
 				temp_folder       : temp_folder,
 				file_map          : file_map,
