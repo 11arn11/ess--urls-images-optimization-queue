@@ -1,10 +1,20 @@
-version: "2"
+version: '3.1'
 
 services:
 
   redis:
-
     image: redis:4-alpine
-
     ports:
       - "9736:6379"
+
+  db:
+    image: mariadb:alpine
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+
+  adminer:
+    image: adminer:alpine
+    restart: always
+    ports:
+      - 8080:8080

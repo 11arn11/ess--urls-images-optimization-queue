@@ -15,3 +15,5 @@
 
 /nodeJS/launcher/
 !/nodeJS/launcher/booster.example.js
+
+/mysql/

@@ -16,6 +16,7 @@ const Queue = require('bull');
 
 const message                 = require('../modules/message');
 const page_speed_optimization = require('../modules/page-speed-optimization');
+const ImageArchiver           = require('../modules/image-archiver');
 
 module.exports = function (config) {
 
@@ -102,6 +103,8 @@ module.exports = function (config) {
 				}
 
 				if (domain_included) {
+
+					ImageArchiver.save(image_url, image_file_path, local_image_url);
 
 					let master_file = await get_master_file(image_url);
 
