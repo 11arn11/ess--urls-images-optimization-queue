@@ -66,7 +66,7 @@ try {
 			destination_queue_name : step3_queue,
 			rate_limiter           : akrl.rate_limiter,
 			google_psi_api_key     : akrl.api_key,
-			proxy                  : akrl.proxy_url,
+			proxy_url              : akrl.proxy_url,
 			storage                : config.storage,
 			domain_filter          : site.domain_filter,
 			//

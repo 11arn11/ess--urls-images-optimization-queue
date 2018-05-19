@@ -69,6 +69,7 @@ module.exports = function (config) {
 			// console.log('processing', url);
 
 			pso = await page_speed_optimization(url, config.google_psi_api_key, config.rate_limiter, config.proxy_url);
+			console.log('proxy_url', config.proxy_url);
 
 			// salva lo zip scaricato e lo decomprime
 			temp_folder = await save_optimized_files(pso, config.storage.zip);
@@ -104,7 +105,7 @@ module.exports = function (config) {
 
 				if (domain_included) {
 
-					ImageArchiver.save(image_url, image_file_path, local_image_url);
+					await ImageArchiver.save(local_image_url, image_url, image_file_path, config.storage.storage);
 
 					let master_file = await get_master_file(image_url);
 
@@ -140,6 +141,7 @@ module.exports = function (config) {
 
 			done(null, {
 
+				proxy             : config.proxy_url || 'http://localhost',
 				temp_folder       : temp_folder,
 				file_map          : file_map,
 				image_temp_folder : image_temp_folder,

@@ -8,11 +8,12 @@ module.exports = {
 	google_psi_api_key : "YOUR_GOOGLE_PSI_API_KEY",
 
 	storage : {
-		output    : 'temp/optimized',
-		archive   : 'temp/archive',
-		zip       : 'temp/zip',
-		log       : 'log',
-		semaphore : 'temp'
+		output    : '/tmp/ess-uioq/optimized',
+		archive   : '/tmp/ess-uioq/archive',
+		storage   : '/tmp/ess-uioq/storage',
+		zip       : '/tmp/ess-uioq/zip',
+		log       : '/tmp/ess-uioq/log',
+		semaphore : '/tmp/ess-uioq'
 	},
 
 	smtp : {
