@@ -9,7 +9,8 @@ const sizeOf = require('image-size');
 const md5     = require('md5');
 const md5File = require('md5-file');
 
-const mysql = require('promise-mysql');
+const mysql    = require('promise-mysql');
+const dateTime = require('node-datetime');
 
 const config = require('../config');
 
@@ -27,7 +28,7 @@ module.exports = {
 			encoding : null
 		});
 
-		let master_temp_file_path = path.join(temp_storage_folder_path,md5(master_file_url));
+		let master_temp_file_path = path.join(temp_storage_folder_path, md5(master_file_url));
 		fs.writeFileSync(master_temp_file_path, master_file_binary);
 
 		let master_file_id = await get_file_version_id(file_path, 'M', master_temp_file_path, storage_folder_path);
@@ -55,8 +56,12 @@ async function get_file_version_id(file_path, file_version, local_file_path, sto
 
 		try {
 
-			let sql  = 'SELECT id FROM images_history WHERE md5_binary=? AND version=? AND md5_path=?';
-			let rows = await connection.query(sql, [md5_binary, file_version, md5_path]);
+			// FIXME: da capire se serve controllare anche la versione
+			// let sql  = 'SELECT id FROM images_history WHERE md5_binary=? AND version=? AND md5_path=?';
+			// let rows = await connection.query(sql, [md5_binary, file_version, md5_path]);
+
+			let sql  = 'SELECT id FROM images_history WHERE md5_binary=? AND md5_path=?';
+			let rows = await connection.query(sql, [md5_binary, md5_path]);
 
 			if (rows.length === 0) {
 
@@ -69,13 +74,14 @@ async function get_file_version_id(file_path, file_version, local_file_path, sto
 						let file_stat  = fs.statSync(local_file_path);
 						let image_stat = await sizeOf(local_file_path);
 
-						let size, width, height, extension, live;
-
+						let size, width, height, extension, live, created_at;
 						size       = file_stat.size;
 						width      = image_stat.width;
 						height     = image_stat.height;
 						extension  = path.extname(file_path);
 						live       = file_version === 'M' ? 1 : 0;
+						created_at = dateTime.create().format('Y-m-d H:M:S');
+
 						let sql    = 'INSERT INTO images_history SET ?';
 						let result = await connection.query(sql, {
 							path           : file_path,
@@ -88,6 +94,7 @@ async function get_file_version_id(file_path, file_version, local_file_path, sto
 							extension      : extension,
 							live           : live,
 							master_file_id : master_file_id || null,
+							created_at     : created_at
 						});
 
 						file_id = result.insertId;
