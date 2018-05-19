@@ -5,6 +5,17 @@ module.exports = {
 		port : "YOUR_redis_PORT"
 	},
 
+	mysql : {
+		host     : 'YOUR_mysql_HOST',
+		user     : 'YOUR_mysql_USERNAME',
+		password : 'YOUR_mysql_PASSWORD',
+		database : 'YOUR_mysql_DB'
+	},
+
+	mongo : {
+		host : 'YOUR_mongo_HOST'
+	},
+
 	google_psi_api_key : "YOUR_GOOGLE_PSI_API_KEY",
 
 	storage : {

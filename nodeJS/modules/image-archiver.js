@@ -12,11 +12,15 @@ const md5File = require('md5-file');
 const mysql    = require('promise-mysql');
 const dateTime = require('node-datetime');
 
+const Logger = require('../modules/logger');
+
 const config = require('../config');
 
 module.exports = {
 
 	save : async function (file_path, master_file_url, optimized_file_path, storage_folder_path) {
+
+		let logger = new Logger(config.mongo);
 
 		let temp_storage_folder_path = path.join(storage_folder_path, 'temp');
 		if (!fs.existsSync(temp_storage_folder_path)) {
@@ -34,6 +38,15 @@ module.exports = {
 		let master_file_id = await get_file_version_id(file_path, 'M', master_temp_file_path, storage_folder_path);
 
 		let optimized_file_id = await get_file_version_id(file_path, 'O', optimized_file_path, storage_folder_path, master_file_id);
+
+		logger.info('image_archiver', {
+			file_path           : file_path,
+			master_file_url     : master_file_url,
+			optimized_file_path : optimized_file_path,
+			storage_folder_path : storage_folder_path,
+			master_file_id      : master_file_id,
+			optimized_file_id   : optimized_file_id,
+		});
 
 	}
 
@@ -73,33 +86,29 @@ async function get_file_version_id(file_path, file_version, local_file_path, sto
 
 						let file_stat  = fs.statSync(local_file_path);
 						let image_stat = await sizeOf(local_file_path);
-
-						let size, width, height, extension, live, created_at;
-						size       = file_stat.size;
-						width      = image_stat.width;
-						height     = image_stat.height;
-						extension  = path.extname(file_path);
-						live       = file_version === 'M' ? 1 : 0;
-						created_at = dateTime.create().format('Y-m-d H:M:S');
+						let created_at = dateTime.create().format('Y-m-d H:M:S');
 
 						let sql    = 'INSERT INTO images_history SET ?';
 						let result = await connection.query(sql, {
 							path           : file_path,
+							filename       : path.basename(file_path),
 							md5_path       : md5_path,
 							md5_binary     : md5_binary,
 							version        : file_version,
-							size           : size,
-							width          : width,
-							height         : height,
-							extension      : extension,
-							live           : live,
+							size           : file_stat.size,
+							width          : image_stat.width,
+							height         : image_stat.height,
+							extension      : path.extname(file_path),
+							live           : file_version === 'M' ? 1 : 0,
+							suggested      : 0,
 							master_file_id : master_file_id || null,
-							created_at     : created_at
+							created_at     : created_at,
+							updated_at     : created_at
 						});
 
 						file_id = result.insertId;
 
-						let stored_file_path = path.join(storage_folder_path, file_id + extension);
+						let stored_file_path = path.join(storage_folder_path, file_id + path.extname(file_path));
 
 						if (!fs.existsSync(storage_folder_path)) {
 							mkdirp.sync(storage_folder_path);
