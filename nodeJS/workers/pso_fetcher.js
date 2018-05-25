@@ -83,54 +83,58 @@ module.exports = function (config) {
 
 			image_temp_folder = temp_folder + '/image';
 
-			image_files = await dir.promiseFiles(image_temp_folder);
+			if (fs.existsSync(temp_folder)) {
 
-			processed_files = [];
+				image_files = await dir.promiseFiles(image_temp_folder);
 
-			for (let y = 0; y < image_files.length; y++) {
+				processed_files = [];
 
-				let image_file_path = image_files[y];
+				for (let y = 0; y < image_files.length; y++) {
 
-				let image_path = image_file_path.replace(temp_folder + '/', '');
+					let image_file_path = image_files[y];
 
-				let image_url = file_map[image_path];
+					let image_path = image_file_path.replace(temp_folder + '/', '');
 
-				let local_image_url = decodeURI(image_url.replace('https://', '').replace('http://', ''));
+					let image_url = file_map[image_path];
 
-				let domain_included = 1;
+					let local_image_url = decodeURI(image_url.replace('https://', '').replace('http://', ''));
 
-				// Filtro per dominio
-				if (config.domain_filter) {
-					domain_included = 0;
-					for (let z = 0; z < config.domain_filter.length; z++) {
-						if (local_image_url.startsWith(config.domain_filter[z])) {
-							domain_included++;
+					let domain_included = 1;
+
+					// Filtro per dominio
+					if (config.domain_filter) {
+						domain_included = 0;
+						for (let z = 0; z < config.domain_filter.length; z++) {
+							if (local_image_url.startsWith(config.domain_filter[z])) {
+								domain_included++;
+							}
 						}
 					}
-				}
 
-				if (domain_included) {
+					if (domain_included) {
 
-					await ImageArchiver.save(local_image_url, image_url, image_file_path, config.storage.storage);
+						await ImageArchiver.save(local_image_url, image_url, image_file_path, config.storage.storage);
 
-					let master_file = await get_master_file(image_url);
+						let master_file = await get_master_file(image_url);
 
-					await save_file_history(image_file_path, local_image_url, master_file, config.storage);
+						await save_file_history(image_file_path, local_image_url, master_file, config.storage);
 
-					let optimized = save_optimazed_file(image_file_path, local_image_url, master_file, config.storage);
+						let optimized = save_optimazed_file(image_file_path, local_image_url, master_file, config.storage);
 
-					if (optimized) {
+						if (optimized) {
 
-						if (imagesToUploadQueue) {
+							if (imagesToUploadQueue) {
 
-							let jobId = local_image_url.replace(/\//g, '_').replace(/:/g, '').replace(/\./g, '_');
+								let jobId = local_image_url.replace(/\//g, '_').replace(/:/g, '').replace(/\./g, '_');
 
-							imagesToUploadQueue.add({
-								url : local_image_url,
-							}, {
-								jobId    : jobId,
-								attempts : 10
-							});
+								imagesToUploadQueue.add({
+									url : local_image_url,
+								}, {
+									jobId    : jobId,
+									attempts : 10
+								});
+
+							}
 
 						}
 
@@ -230,6 +234,8 @@ function check_config(config) {
 
 async function save_optimized_files(zipped_content, temp_storage) {
 
+	let zipped_content_md5 = md5(zipped_content);
+
 	let destination = temp_storage + '/zipped_optimized_resources';
 	if (!fs.existsSync(destination)) {
 		mkdirp.sync(destination);
@@ -238,7 +244,7 @@ async function save_optimized_files(zipped_content, temp_storage) {
 
 	let time           = new Date().getTime();
 	let micro_time     = process.hrtime();
-	let temp_folder    = destination + '/temp_' + time + '_' + micro_time[1];
+	let temp_folder    = destination + '/temp_' + time + '_' + micro_time[1] + '_' + zipped_content_md5;
 	let temp_file_name = temp_folder + '.zip';
 
 	// console.log('created', temp_file_name);

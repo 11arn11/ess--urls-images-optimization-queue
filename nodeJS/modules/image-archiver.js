@@ -48,14 +48,20 @@ module.exports = {
 			optimized_file_id   : optimized_file_id,
 		});
 
+	},
+
+	register : async function (file_path, file_version, local_file_path, storage_folder_path, master_file_id, created_at) {
+
+		return await get_file_version_id(file_path, file_version, local_file_path, storage_folder_path, master_file_id, created_at);
+
 	}
 
 };
 
-async function get_file_version_id(file_path, file_version, local_file_path, storage_folder_path, master_file_id) {
+async function get_file_version_id(file_path, file_version, local_file_path, storage_folder_path, master_file_id, created_at) {
 
 	if (!master_file_id && file_version !== 'M') {
-		throw new Error('master_file_id non trovato per la versione '.version);
+		throw new Error('master_file_id non trovato per la versione ' + file_version);
 	}
 
 	let connection, md5_binary, md5_path, file_id;
