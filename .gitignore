@@ -15,3 +15,6 @@
 
 /nodeJS/launcher/
 !/nodeJS/launcher/booster.example.js
+/__temp__LIVE__2018_05_31/
+/mongo/
+/mysql/
