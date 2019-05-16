@@ -9,17 +9,22 @@ const md5File            = require('md5-file');
 const dateTime           = require('node-datetime');
 const request            = require('request-promise');
 const glob               = require('glob');
-const mail_notifier      = require('../modules/mail-notifier');
-const semaphore          = require('../modules/fs-semaphore');
+
+const mail_notifier = require('../modules/mail-notifier');
+const semaphore     = require('../modules/fs-semaphore');
 
 const Queue = require('bull');
 
 const message                 = require('../modules/message');
 const page_speed_optimization = require('../modules/page-speed-optimization');
+const ImageArchiver           = require('../modules/image-archiver');
+const Logger                  = require('../modules/logger');
 
 module.exports = function (config) {
 
 	check_config(config);
+
+	let logger = new Logger(config.mongo);
 
 	const pagesToOptimizeQueue = new Queue(config.source_queue_name, {redis : config.redis});
 
@@ -30,7 +35,7 @@ module.exports = function (config) {
 
 	pagesToOptimizeQueue.process(10, async function (job, done) {
 
-		let url, pso, temp_folder, file_map, image_temp_folder, image_files;
+		let url, pso, temp_folder, file_map, image_temp_folder, image_files, processed_files;
 
 		try {
 
@@ -68,6 +73,7 @@ module.exports = function (config) {
 			// console.log('processing', url);
 
 			pso = await page_speed_optimization(url, config.google_psi_api_key, config.rate_limiter, config.proxy_url);
+			// console.log('proxy_url', config.proxy_url);
 
 			// salva lo zip scaricato e lo decomprime
 			temp_folder = await save_optimized_files(pso, config.storage.zip);
@@ -77,50 +83,58 @@ module.exports = function (config) {
 
 			image_temp_folder = temp_folder + '/image';
 
-			image_files = await dir.promiseFiles(image_temp_folder);
+			if (fs.existsSync(temp_folder)) {
 
-			for (let y = 0; y < image_files.length; y++) {
+				image_files = await dir.promiseFiles(image_temp_folder);
 
-				let image_file_path = image_files[y];
+				processed_files = [];
 
-				let image_path = image_file_path.replace(temp_folder + '/', '');
+				for (let y = 0; y < image_files.length; y++) {
 
-				let image_url = file_map[image_path];
+					let image_file_path = image_files[y];
 
-				let local_image_url = decodeURI(image_url.replace('https://', '').replace('http://', ''));
+					let image_path = image_file_path.replace(temp_folder + '/', '');
 
-				let domain_included = 1;
+					let image_url = file_map[image_path];
 
-				// Filtro per dominio
-				if (config.domain_filter) {
-					domain_included = 0;
-					for (let z = 0; z < config.domain_filter.length; z++) {
-						if (local_image_url.startsWith(config.domain_filter[z])) {
-							domain_included++;
+					let local_image_url = decodeURI(image_url.replace('https://', '').replace('http://', ''));
+
+					let domain_included = 1;
+
+					// Filtro per dominio
+					if (config.domain_filter) {
+						domain_included = 0;
+						for (let z = 0; z < config.domain_filter.length; z++) {
+							if (local_image_url.startsWith(config.domain_filter[z])) {
+								domain_included++;
+							}
 						}
 					}
-				}
 
-				if (domain_included) {
+					if (domain_included) {
 
-					let master_file = await get_master_file(image_url);
+						await ImageArchiver.save(local_image_url, image_url, image_file_path, config.storage.storage);
 
-					await save_file_history(image_file_path, local_image_url, master_file, config.storage);
+						let master_file = await get_master_file(image_url);
 
-					let optimized = save_optimazed_file(image_file_path, local_image_url, master_file, config.storage);
+						await save_file_history(image_file_path, local_image_url, master_file, config.storage);
 
-					if (optimized) {
+						let optimized = save_optimazed_file(image_file_path, local_image_url, master_file, config.storage);
 
-						if (imagesToUploadQueue) {
+						if (optimized) {
 
-							let jobId = local_image_url.replace(/\//g, '_').replace(/:/g, '').replace(/\./g, '_');
+							if (imagesToUploadQueue) {
 
-							imagesToUploadQueue.add({
-								url : local_image_url,
-							}, {
-								jobId    : jobId,
-								attempts : 10
-							});
+								let jobId = local_image_url.replace(/\//g, '_').replace(/:/g, '').replace(/\./g, '_');
+
+								imagesToUploadQueue.add({
+									url : local_image_url,
+								}, {
+									jobId    : jobId,
+									attempts : 10
+								});
+
+							}
 
 						}
 
@@ -135,14 +149,16 @@ module.exports = function (config) {
 				// console.log('removed image temp folder', temp_folder);
 			}
 
-			done(null, {
-
+			let exit_param = {
+				proxy             : config.proxy_url || 'http://localhost',
 				temp_folder       : temp_folder,
 				file_map          : file_map,
 				image_temp_folder : image_temp_folder,
 				image_files       : image_files,
 
-			});
+			};
+
+			done(null, exit_param);
 
 		} catch (err) {
 
@@ -151,15 +167,20 @@ module.exports = function (config) {
 				// console.log('removed image temp folder', temp_folder);
 			}
 
-			done(err, {
+			let exit_param = {
 				error             : err,
+				proxy             : config.proxy_url || 'http://localhost',
 				url               : url,
 				pso               : pso,
 				temp_folder       : temp_folder,
 				file_map          : file_map,
 				image_temp_folder : image_temp_folder,
 				image_files       : image_files,
-			});
+			};
+
+			logger.error('pso_fetcher', exit_param);
+
+			done(err);
 
 		}
 
@@ -213,6 +234,8 @@ function check_config(config) {
 
 async function save_optimized_files(zipped_content, temp_storage) {
 
+	let zipped_content_md5 = md5(zipped_content);
+
 	let destination = temp_storage + '/zipped_optimized_resources';
 	if (!fs.existsSync(destination)) {
 		mkdirp.sync(destination);
@@ -221,7 +244,7 @@ async function save_optimized_files(zipped_content, temp_storage) {
 
 	let time           = new Date().getTime();
 	let micro_time     = process.hrtime();
-	let temp_folder    = destination + '/temp_' + time + '_' + micro_time[1];
+	let temp_folder    = destination + '/temp_' + time + '_' + micro_time[1] + '_' + zipped_content_md5;
 	let temp_file_name = temp_folder + '.zip';
 
 	// console.log('created', temp_file_name);

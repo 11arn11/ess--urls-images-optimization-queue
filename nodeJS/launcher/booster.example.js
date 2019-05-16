@@ -1,5 +1,7 @@
 const args = require('../modules/cli')();
 
+const Logger = require('../modules/logger');
+
 const apikey_ratelimiter = require('../modules/apikey-ratelimiter');
 
 const crawler     = require('../workers/crawler');
@@ -15,7 +17,27 @@ let step1_queue = site.name + '/' + config.queue.step1;
 let step2_queue = site.name + '/' + config.queue.step2;
 let step3_queue = site.name + '/' + config.queue.step3;
 
+let logger, psi_config, pso_config;
+
 try {
+
+	logger = new Logger(config.mongo);
+
+	psi_config = [
+		[2000, 'YOUR_PSI_API_KEY', 'localhost'],
+		[2000, 'YOUR_PSI_API_KEY', 'localhost'],
+		[2000, 'YOUR_PSI_API_KEY', 'localhost'],
+		[2000, 'YOUR_PSO_API_KEY', 'localhost'],
+	];
+
+	pso_config = [
+		[2000, 'YOUR_PSI_API_KEY', 'localhost'],
+		[2000, 'YOUR_PSI_API_KEY', 'localhost'],
+		[2000, 'YOUR_PSI_API_KEY', 'localhost'],
+		[2000, 'YOUR_PSO_API_KEY', 'localhost'],
+	];
+
+	logger.info('booster', [psi_config, pso_config]);
 
 	// Crawler
 	crawler({
@@ -27,12 +49,7 @@ try {
 	});
 
 	// PSI
-	[
-		[2000, 'YOUR_PSI_API_KEY', 'localhost'],
-		[2000, 'YOUR_PSI_API_KEY', 'localhost'],
-		[2000, 'YOUR_PSI_API_KEY', 'localhost'],
-		[2000, 'YOUR_PSO_API_KEY', 'localhost'],
-	].forEach(function (settings) {
+	psi_config.forEach(function (settings) {
 
 		let proxy_url = settings[2] | null;
 
@@ -50,11 +67,7 @@ try {
 	});
 
 	// PSO
-	[
-		[2000, 'YOUR_PSO_API_KEY', 'localhost'],
-		[2000, 'YOUR_PSO_API_KEY', 'localhost'],
-		[2000, 'YOUR_PSO_API_KEY', 'localhost'],
-	].forEach(function (settings) {
+	pso_config.forEach(function (settings) {
 
 		let proxy_url = settings[2] | null;
 
@@ -66,13 +79,15 @@ try {
 			destination_queue_name : step3_queue,
 			rate_limiter           : akrl.rate_limiter,
 			google_psi_api_key     : akrl.api_key,
-			proxy                  : akrl.proxy_url,
+			proxy_url              : akrl.proxy_url,
 			storage                : config.storage,
 			domain_filter          : site.domain_filter,
 			//
 			semaphore_path         : config.storage.semaphore,
 			site_name              : site.name,
-			smtp                   : config.smtp
+			smtp                   : config.smtp,
+			//
+			mongo                  : config.mongo
 		});
 
 	});
@@ -91,6 +106,10 @@ try {
 
 } catch (err) {
 
+	logger.error('booster', {
+		err    : err,
+		config : [psi_config, pso_config]
+	});
 	console.log('errore', err);
 
 }

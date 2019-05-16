@@ -5,14 +5,26 @@ module.exports = {
 		port : "YOUR_redis_PORT"
 	},
 
+	mysql : {
+		host     : 'YOUR_mysql_HOST',
+		user     : 'YOUR_mysql_USERNAME',
+		password : 'YOUR_mysql_PASSWORD',
+		database : 'YOUR_mysql_DB'
+	},
+
+	mongo : {
+		host : 'YOUR_mongo_HOST'
+	},
+
 	google_psi_api_key : "YOUR_GOOGLE_PSI_API_KEY",
 
 	storage : {
-		output    : 'temp/optimized',
-		archive   : 'temp/archive',
-		zip       : 'temp/zip',
-		log       : 'log',
-		semaphore : 'temp'
+		output    : '/tmp/ess-uioq/optimized',
+		archive   : '/tmp/ess-uioq/archive',
+		storage   : '/tmp/ess-uioq/storage',
+		zip       : '/tmp/ess-uioq/zip',
+		log       : '/tmp/ess-uioq/log',
+		semaphore : '/tmp/ess-uioq'
 	},
 
 	smtp : {

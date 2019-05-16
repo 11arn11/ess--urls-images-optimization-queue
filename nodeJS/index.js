@@ -42,7 +42,9 @@ try {
 		rate_limiter           : rate_limiter,
 		google_psi_api_key     : config.google_psi_api_key,
 		storage                : config.storage,
-		domain_filter          : site.domain_filter
+		domain_filter          : site.domain_filter,
+		//
+		mongo                  : config.mongo
 	});
 
 	uploader({

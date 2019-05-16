@@ -14,16 +14,19 @@ const request = require('request-promise');
 		};
 
 		let options = {
-			url      : 'https://developers.google.com/speed/pagespeed/insights/optimizeContents',
-			qs       : config,
-			encoding : null,
+			url  : 'https://www.googleapis.com/pagespeedonline/v4/runPagespeed',
+			qs   : config,
+			json : true,
+
 		};
 
 		options.proxy  = 'http://86.107.98.214:8118';
-		//options.tunnel = true;
+		options.tunnel = true;
 
 		let output = await request(options);
 		console.error(output);
+
+		console.log('proxy_url', options.proxy);
 
 	} catch (err) {
 
